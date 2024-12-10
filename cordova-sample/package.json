@@ -1,0 +1,27 @@
+{
+  "name": "com.kfintech.protect.sample",
+  "displayName": "SecurityCheckerDemo",
+  "version": "1.0.0",
+  "description": "Security Checker Demo Application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "KFintech Team",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "cordova-android": "^10.1.2",
+    "cordova-plugin-security-checker": "file:../cordova-plugin-security-checker"
+  },
+  "cordova": {
+    "platforms": [
+      "android"
+    ],
+    "plugins": {
+      "cordova-plugin-security-checker": {}
+    }
+  }
+}

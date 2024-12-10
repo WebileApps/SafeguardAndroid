@@ -1,0 +1,75 @@
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file
+local.properties
+
+# Android Studio
+*.iml
+.idea/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/caches
+
+# Android Studio captures folder
+captures/
+
+# External native build folder generated in Android Studio
+.externalNativeBuild
+.cxx/
+
+# Generated files
+bin/
+gen/
+out/
+
+# Gradle wrapper files (optional, but recommended to keep)
+# gradle/wrapper/gradle-wrapper.jar
+# gradle/wrapper/gradle-wrapper.properties
+
+# Log Files
+*.log
+
+# Android Studio Navigation editor temp files
+.navigation/
+
+# Android Studio captures folder
+captures/
+
+# IntelliJ
+*.iml
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+
+# Android Profiling
+*.hprof
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

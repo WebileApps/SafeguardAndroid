@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
+    <title>Security Checker Demo</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app">
+        <h1>Security Checker Demo</h1>
+        
+        <div class="button-container">
+            <button id="btnCheckRoot" class="security-button">
+                Check Root Status
+            </button>
+            
+            <button id="btnCheckDeveloper" class="security-button">
+                Check Developer Options
+            </button>
+            
+            <button id="btnCheckNetwork" class="security-button">
+                Check Network Security
+            </button>
+            
+            <button id="btnCheckMalware" class="security-button">
+                Check Malware/Tampering
+            </button>
+            
+            <button id="btnCheckScreenMirroring" class="security-button">
+                Check Screen Mirroring
+            </button>
+        </div>
+
+        <div id="statusContainer" class="status-container">
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+    </div>
+    
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+</body>
+</html>

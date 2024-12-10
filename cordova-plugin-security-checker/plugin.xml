@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    id="cordova-plugin-security-checker"
+    version="1.0.0">
+    
+    <name>SecurityChecker</name>
+    <description>Cordova plugin for security checks with configurable warning/critical behaviors</description>
+    
+    <js-module src="www/securitychecker.js" name="SecurityChecker">
+        <clobbers target="SecurityChecker" />
+    </js-module>
+
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="SecurityChecker">
+                <param name="android-package" value="com.kfintech.protect.cordova.SecurityCheckerPlugin"/>
+            </feature>
+        </config-file>
+
+        <!-- Plugin preferences that can be set in config.xml -->
+        <preference name="TREAT_ROOT_AS_WARNING" default="false" />
+        <preference name="TREAT_DEVELOPER_OPTIONS_AS_WARNING" default="false" />
+        <preference name="TREAT_MALWARE_AS_WARNING" default="false" />
+        <preference name="TREAT_TAMPERING_AS_WARNING" default="false" />
+
+        <!-- Add our security checker library as a dependency -->
+        <framework src="../protect" custom="true" type="gradleReference" />
+
+        <source-file src="src/android/SecurityCheckerPlugin.java" 
+            target-dir="src/com/kfintech/protect/cordova" />
+    </platform>
+</plugin>

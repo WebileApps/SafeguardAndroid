@@ -13,7 +13,14 @@
         android:text="Security Checker Demo"
         android:textSize="24sp"
         android:textStyle="bold" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnCheckRoot"
         android:layout_width="match_parent"
@@ -49,4 +56,19 @@
         android:layout_marginBottom="8dp"
         android:text="Check Screen Mirroring" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAppSpoofing"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Check App Spoofing" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnKeyLoggerDetection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Check Key Logger Detection" />
+      </LinearLayout>
+    </ScrollView>
 </LinearLayout>

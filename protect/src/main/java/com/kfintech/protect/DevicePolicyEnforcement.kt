@@ -19,16 +19,6 @@ object DevicePolicyEnforcement {
         return isDevOptionsEnabled || isUSBDebuggingEnabled || isMockLocationEnabled || isTimeManipulated
     }
 
-    private fun showPolicyViolationDialog(context: Context) {
-        val builder = AlertDialog.Builder(context)
-        builder.setTitle("Policy Violation Detected")
-        builder.setMessage("This device does not meet the security policies required by the application.")
-        builder.setCancelable(false)
-        builder.setPositiveButton(
-            "Exit"
-        ) { dialog: DialogInterface?, which: Int -> System.exit(0) }
-        builder.show()
-    }
 
     // Individual checks (reuse the methods written above)
     private fun isDeveloperOptionsEnabled(context: Context): Boolean {

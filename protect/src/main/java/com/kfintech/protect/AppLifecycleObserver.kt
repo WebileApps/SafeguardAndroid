@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 
@@ -90,16 +89,15 @@ class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObser
     }
 
     companion object {
-        val TAG: String = AppLifecycleObserver::class.java.name
         private lateinit var networkMonitor: NetworkMonitor
     }
 
 
-    fun detectOverlayApps(context: Context) {
+    private fun detectOverlayApps(context: Context) {
         val pm = context.packageManager
         for (packageInfo in pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)) {
             if (packageInfo.requestedPermissions != null) {
-                for (permission in packageInfo.requestedPermissions) {
+                for (permission in packageInfo.requestedPermissions!!) {
                     if (permission == "android.permission.SYSTEM_ALERT_WINDOW") {
                         showToast(context,"App using SYSTEM_ALERT_WINDOW: " + packageInfo.packageName)
                     }

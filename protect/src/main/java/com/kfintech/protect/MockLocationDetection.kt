@@ -13,20 +13,18 @@ object MockLocationDetection {
         try {
             val locationManager =
                 context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            if (locationManager != null) {
-                for (provider in locationManager.allProviders) {
-                    if (ActivityCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        val location = locationManager.getLastKnownLocation(provider)
-                        if (location != null && location.isFromMockProvider) {
-                            return true
-                        }
+            for (provider in locationManager.allProviders) {
+                if (ActivityCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    val location = locationManager.getLastKnownLocation(provider)
+                    if (location != null && location.isFromMockProvider) {
+                        return true
                     }
                 }
             }

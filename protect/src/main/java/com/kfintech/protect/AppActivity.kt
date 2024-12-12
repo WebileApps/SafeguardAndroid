@@ -1,5 +1,6 @@
 package com.kfintech.protect
 
+import android.content.Context
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.WindowManager
@@ -7,6 +8,10 @@ import androidx.appcompat.app.AppCompatActivity
 
 
 open class AppActivity : AppCompatActivity() {
+    companion object{
+        lateinit var context:Context
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         /*TODO: Tapjacking Prevention*/
@@ -14,10 +19,9 @@ open class AppActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_SECURE,
             WindowManager.LayoutParams.FLAG_SECURE
         )
+        context = this
 
-        if(RootUtil.isDeviceRooted){
-            showToast(getString(R.string.rooted_critical))
-        }
+
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="tap_jacking_alert">Your screen is being obscured by another app. Please close any overlays and try again.</string>
+    <string name="rooted_critical">Rooted devices/emulators are not supported for this application.</string>
+    <string name="rooted_warning">Rooted devices or emulators can pose significant security risks.</string>
+    <string name="vpn_warning">Active VPN connection detected, which may pose potential security risks.</string>
+    <string name="proxy_warning">Active Proxy connection detected, which may pose potential security risks.</string>
+    <string name="usecured_network_warning">An unsecured network connection has been detected.</string>
+    <string name="auto_time_warning">Please enable automatic date and time settings for security.</string>
+    <string name="developer_options_warning">Developer options are enabled on this device, which may pose security risks</string>
+    <string name="mock_location_warning">Mock location is enabled, which may affect the accuracy of location data.</string>
+    <string name="usb_debugging_warning">USB debugging is enabled, which may pose security risks.</string>
+    <string name="app_spoofing_warniong">Application spoofing has been detected, which may compromise security.</string>
+    <string name="accecibility_warniong">Accessibility Service is enabled for this app.</string>
+    <string name="accecibility_not_warniong">Accessibility Service is not enabled for this app.</string>
+    <string name="screen_sharing_warniong">Screen sharing is active, which may pose a security risk.</string>
+    <string name="screen_mirroring_warniong">Screen mirroring is active, which may pose a security risk.</string>
+    <string name="screen_recording_warniong">Screen recording is active, which may pose a security risk.</string>
+
+</resources>

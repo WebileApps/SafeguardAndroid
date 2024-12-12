@@ -5,24 +5,63 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 
 
 class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObserver {
+
+    var status = false
+    // Initialize SecurityChecker with the provided configuration
+    private val securityChecker: SecurityChecker = SecurityChecker(
+        context,
+        SecurityChecker.SecurityConfig(
+            treatRootAsWarning = false,
+            treatDeveloperOptionsAsWarning = true,
+            treatMalwareAsWarning = true,
+            treatTamperingAsWarning = true
+        )
+    )
+
     override fun onStart(owner: LifecycleOwner) {
         // App enters the foreground
         Log.e("APP>>>", "App is in Foreground")
 
-        showToast(context,"App is in Foreground ${context.getPackageName()}")
 
-        /*TODO: Device Policy enforcement such as detection of developer option, USB debugging, Mock Location, time settings manipulation, etc. shall be configured*/
+        context.checkRoot(securityChecker,{isDeviceRooted->
+            if(isDeviceRooted){
+                context.checkDeveloperOptions(securityChecker, { isDeveloperOptions ->
+                    if(isDeveloperOptions){
+                        context.checkMalware(securityChecker, { isMalware ->
+                            if(isMalware){
+                                context.checkScreenMirroring(securityChecker, { isMirroring ->
+                                    if(isMirroring){
+                                        context.checkApplicationSpoofing(securityChecker, { isSpoofing ->
+                                            if(isSpoofing){
+                                                context.checkKeyLoggerDetection(securityChecker, { isKeyLogger ->
+                                                    if(isKeyLogger){
+                                                        context.checkNetwork(securityChecker, { isNetWork ->
+                                                            if(isNetWork){
+
+                                                            }})
+                                                    }})
+                                            }})
+                                    }})
+                            }})
+                    }
+                })
+            }
+        })
+
+
+      /*  *//*TODO: Device Policy enforcement such as detection of developer option, USB debugging, Mock Location, time settings manipulation, etc. shall be configured*//*
         if(DevicePolicyEnforcement.enforceDevicePolicy(context)){
             showToast(context,"Device policy violations detected. Please disable developer options, USB debugging, or mock locations, and ensure the system time is correct.")
         }
 
 
-        /*TODO: Application Spoofing Detection*/
+        *//*TODO: Application Spoofing Detection*//*
         if (context.packageName != getPackageName(context)) {
             Log.e("Security", "Application spoofing detected")
             showToast(context,"Application spoofing detected")
@@ -30,13 +69,13 @@ class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObser
         }
 
         //  showToast(this,"Anand>>>>>");
-        /*TODO: Overlay Malware Prevention*/
+        *//*TODO: Overlay Malware Prevention*//*
         val isOverlayEnabled = Settings.canDrawOverlays(context)
         if (isOverlayEnabled) {
            showToast( context,"Overlay detected")
         }
 
-        /*TODO: Overlay Malware Detection*/
+        *//*TODO: Overlay Malware Detection*//*
         detectOverlayApps(context)
 
         if(ScreenSharingDetector.isScreenSharingActive(context)||ScreenSharingDetector.isScreenMirrored(context)){
@@ -55,10 +94,10 @@ class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObser
 
 
 
-        /*TODO: Mobile application shall check new network connections or connections for unsecured networks like VPN connection, proxy and unsecured Wi-Fi connections.77~@*/
-       /* networkChangeReceiver = NetworkChangeReceiver()
+        *//*TODO: Mobile application shall check new network connections or connections for unsecured networks like VPN connection, proxy and unsecured Wi-Fi connections.77~@*//*
+       *//* networkChangeReceiver = NetworkChangeReceiver()
         val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-        registerReceiver(networkChangeReceiver, filter)*/
+        registerReceiver(networkChangeReceiver, filter)*//*
         networkMonitor = NetworkMonitor(context)
         networkMonitor.startMonitoring { isConnected ->
             if(isConnected){
@@ -77,14 +116,13 @@ class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObser
                 }
             }
 
-        }
+        }*/
 
     }
 
     override fun onStop(owner: LifecycleOwner) {
         // App enters the background
         Log.e("APP>>>", "App is in Background")
-        showToast(context,"App is in Background")
         networkMonitor.stopMonitoring()
     }
 
@@ -92,6 +130,28 @@ class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObser
         private lateinit var networkMonitor: NetworkMonitor
     }
 
+  /*  private fun checkRoot() {
+        val result = securityChecker.checkRootStatus()
+
+        return when (result) {
+            is SecurityChecker.SecurityCheck.Critical -> {
+                SecurityChecker.showSecurityDialog(AppActivity.context, result.message, isCritical = true)
+
+            }
+            is SecurityChecker.SecurityCheck.Warning -> {
+
+                SecurityChecker.showSecurityDialog(AppActivity.context, result.message, isCritical = false) { userAcknowledged ->
+                    if (userAcknowledged) {
+
+                    }
+                }
+
+            }
+            is SecurityChecker.SecurityCheck.Success -> {
+
+            }
+        }
+    }*/
 
     private fun detectOverlayApps(context: Context) {
         val pm = context.packageManager
@@ -99,7 +159,7 @@ class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObser
             if (packageInfo.requestedPermissions != null) {
                 for (permission in packageInfo.requestedPermissions!!) {
                     if (permission == "android.permission.SYSTEM_ALERT_WINDOW") {
-                        showToast(context,"App using SYSTEM_ALERT_WINDOW: " + packageInfo.packageName)
+                        //showToast(context,"App using SYSTEM_ALERT_WINDOW: " + packageInfo.packageName)
                     }
                 }
             }

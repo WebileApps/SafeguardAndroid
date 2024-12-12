@@ -40,12 +40,12 @@ class SecurityChecker(private val context: Context, private val config: Security
     // Check for rooted device
     fun checkRootStatus(): SecurityCheck {
         val rootBeer = RootUtil.isDeviceRooted
-
         return if (rootBeer) {
             if (config.treatRootAsWarning) {
-                SecurityCheck.Warning(context.getString(R.string.rooted_warning))
-            } else {
                 SecurityCheck.Critical(context.getString(R.string.rooted_critical))
+            } else {
+
+                SecurityCheck.Warning(context.getString(R.string.rooted_warning))
             }
         } else {
             SecurityCheck.Success
@@ -127,13 +127,13 @@ class SecurityChecker(private val context: Context, private val config: Security
             )
             
             val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                packageInfo.signingInfo.apkContentsSigners
+                packageInfo.signingInfo?.apkContentsSigners
             } else {
                 @Suppress("DEPRECATION")
                 packageInfo.signatures
             }
 
-            if (!verifySignature(signatures)) {
+            if (!verifySignature(signatures!!)) {
                 return if (config.treatTamperingAsWarning) {
                     SecurityCheck.Warning("Application signature verification failed. This may indicate tampering.")
                 } else {
@@ -204,8 +204,9 @@ class SecurityChecker(private val context: Context, private val config: Security
         return signatures.isNotEmpty()
     }
 
+
     companion object {
-        fun showSecurityDialog(context: Context, message: String, isCritical: Boolean) {
+        fun showSecurityDialog(context: Context, message: String, isCritical: Boolean, onResponse: ((Boolean) -> Unit)? = null) {
             AlertDialog.Builder(context)
                 .setTitle(if (isCritical) "Security Error" else "Security Warning")
                 .setMessage(message)

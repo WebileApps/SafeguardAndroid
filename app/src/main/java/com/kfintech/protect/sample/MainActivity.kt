@@ -8,6 +8,13 @@ import android.widget.Toast
 import com.kfintech.protect.AppActivity
 import com.kfintech.protect.NetworkChangeReceiver
 import com.kfintech.protect.SecurityChecker
+import com.kfintech.protect.checkApplicationSpoofing
+import com.kfintech.protect.checkDeveloperOptions
+import com.kfintech.protect.checkKeyLoggerDetection
+import com.kfintech.protect.checkMalware
+import com.kfintech.protect.checkNetwork
+import com.kfintech.protect.checkRoot
+import com.kfintech.protect.checkScreenMirroring
 import com.kfintech.protect.sample.databinding.ActivityMainBinding
 
 class MainActivity : AppActivity() {
@@ -39,18 +46,18 @@ class MainActivity : AppActivity() {
     }
 
     private fun setupButtons() {
-        binding.btnCheckRoot.setOnClickListener { checkRoot() }
-        binding.btnCheckDeveloper.setOnClickListener { checkDeveloperOptions() }
-        binding.btnCheckNetwork.setOnClickListener { checkNetwork() }
-        binding.btnCheckMalware.setOnClickListener { checkMalware() }
-        binding.btnCheckScreenMirroring.setOnClickListener { checkScreenMirroring() }
-        binding.btnAppSpoofing.setOnClickListener { checkApplicationSpoofing() }
-        binding.btnKeyLoggerDetection.setOnClickListener { checkKeyLoggerDetection() }
+        binding.btnCheckRoot.setOnClickListener { this.checkRoot(securityChecker,{}) }
+        binding.btnCheckDeveloper.setOnClickListener { this.checkDeveloperOptions(securityChecker,{}) }
+        binding.btnCheckNetwork.setOnClickListener { this.checkNetwork(securityChecker,{}) }
+        binding.btnCheckMalware.setOnClickListener { this.checkMalware(securityChecker,{}) }
+        binding.btnCheckScreenMirroring.setOnClickListener { this.checkScreenMirroring(securityChecker,{}) }
+        binding.btnAppSpoofing.setOnClickListener { this.checkApplicationSpoofing(securityChecker,{}) }
+        binding.btnKeyLoggerDetection.setOnClickListener { this.checkKeyLoggerDetection(securityChecker,{}) }
     }
 
     private fun performInitialSecurityChecks() {
         // Check for root status on app launch
-        when (val result = securityChecker.checkRootStatus()) {
+     /*   when (val result = securityChecker.checkRootStatus()) {
             is SecurityChecker.SecurityCheck.Critical -> {
                 SecurityChecker.showSecurityDialog(this, result.message, true)
             }
@@ -58,112 +65,10 @@ class MainActivity : AppActivity() {
                 SecurityChecker.showSecurityDialog(this, result.message, false)
             }
             else -> checkDeveloperOptions()
-        }
-    }
-
-    private fun checkRoot() {
-
-      /*  if(RootUtil.isDeviceRooted){
-            showToast(getString(R.string.rooted_message))
         }*/
-        when (val result = securityChecker.checkRootStatus()) {
-            is SecurityChecker.SecurityCheck.Critical -> {
-                SecurityChecker.showSecurityDialog(this, result.message, true)
-            }
-            is SecurityChecker.SecurityCheck.Warning -> {
-                SecurityChecker.showSecurityDialog(this, result.message, false)
-            }
-            is SecurityChecker.SecurityCheck.Success -> {
-                Toast.makeText(this, "Device is not rooted", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
-    private fun tapJacking() {
-        when (val result = securityChecker.checkRootStatus()) {
-            is SecurityChecker.SecurityCheck.Critical -> {
-                SecurityChecker.showSecurityDialog(this, result.message, true)
-            }
-            is SecurityChecker.SecurityCheck.Warning -> {
-                SecurityChecker.showSecurityDialog(this, result.message, false)
-            }
-            is SecurityChecker.SecurityCheck.Success -> {
-                Toast.makeText(this, "Device is not rooted", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
 
-    private fun checkDeveloperOptions() {
-        when (val result = securityChecker.checkDeveloperOptions()) {
-            is SecurityChecker.SecurityCheck.Critical -> {
-                SecurityChecker.showSecurityDialog(this, result.message, true)
-            }
-            is SecurityChecker.SecurityCheck.Warning -> {
-                SecurityChecker.showSecurityDialog(this, result.message, false)
-            }
-            is SecurityChecker.SecurityCheck.Success -> {
-                Toast.makeText(this, "Developer options check passed", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
 
-    private fun checkNetwork() {
-        when (val result = securityChecker.checkNetworkSecurity()) {
-            is SecurityChecker.SecurityCheck.Warning -> {
-                SecurityChecker.showSecurityDialog(this, result.message, false)
-            }
-            is SecurityChecker.SecurityCheck.Success -> {
-                Toast.makeText(this, "Network security check passed", Toast.LENGTH_SHORT).show()
-            }
-            else -> {}
-        }
-    }
 
-    private fun checkMalware() {
-        when (val result = securityChecker.checkMalwareAndTampering()) {
-            is SecurityChecker.SecurityCheck.Critical -> {
-                SecurityChecker.showSecurityDialog(this, result.message, true)
-            }
-            is SecurityChecker.SecurityCheck.Warning -> {
-                SecurityChecker.showSecurityDialog(this, result.message, false)
-            }
-            is SecurityChecker.SecurityCheck.Success -> {
-                Toast.makeText(this, "Malware check passed", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun checkScreenMirroring() {
-        when (val result = securityChecker.checkScreenMirroring()) {
-            is SecurityChecker.SecurityCheck.Warning -> {
-                SecurityChecker.showSecurityDialog(this, result.message, false)
-            }
-            is SecurityChecker.SecurityCheck.Success -> {
-                Toast.makeText(this, "Screen mirroring check passed", Toast.LENGTH_SHORT).show()
-            }
-            else -> {}
-        }
-    }
-    private fun checkApplicationSpoofing() {
-        when (val result = securityChecker.checkAppSpoofing()) {
-            is SecurityChecker.SecurityCheck.Warning -> {
-                SecurityChecker.showSecurityDialog(this, result.message, false)
-            }
-            is SecurityChecker.SecurityCheck.Success -> {
-                Toast.makeText(this, "App Spoofing check passed", Toast.LENGTH_SHORT).show()
-            }
-            else -> {}
-        }
-    }
-    private fun checkKeyLoggerDetection() {
-        when (val result = securityChecker.checkKeyLoggerDetection()) {
-            is SecurityChecker.SecurityCheck.Warning -> {
-                SecurityChecker.showSecurityDialog(this, result.message, false)
-            }
-            is SecurityChecker.SecurityCheck.Success -> {
-                Toast.makeText(this, "Key logger detection check passed", Toast.LENGTH_SHORT).show()
-            }
-            else -> {}
-        }
-    }
 }

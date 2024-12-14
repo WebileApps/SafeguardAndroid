@@ -8,6 +8,7 @@ import android.widget.Toast
 import com.kfintech.protect.AppActivity
 import com.kfintech.protect.NetworkChangeReceiver
 import com.kfintech.protect.SecurityChecker
+import com.kfintech.protect.SecurityConfigManager
 import com.kfintech.protect.checkApplicationSpoofing
 import com.kfintech.protect.checkDeveloperOptions
 import com.kfintech.protect.checkKeyLoggerDetection
@@ -29,46 +30,105 @@ class MainActivity : AppActivity() {
 
 
         /*TODO: Mobile application shall check new network connections or connections for unsecured networks like VPN connection, proxy and unsecured Wi-Fi connections.77~@*/
+        // Initialize SecurityConfigManager with desired configuration
+        SecurityConfigManager.initialize(
+            this,
+            SecurityChecker.SecurityConfig(
+                rootCheck = SecurityChecker.SecurityCheckState.WARNING,
+                developerOptionsCheck = SecurityChecker.SecurityCheckState.WARNING,
+                malwareCheck = SecurityChecker.SecurityCheckState.WARNING,
+                tamperingCheck = SecurityChecker.SecurityCheckState.WARNING,
+                appSpoofingCheck = SecurityChecker.SecurityCheckState.WARNING,
+                networkSecurityCheck = SecurityChecker.SecurityCheckState.WARNING,
+                screenSharingCheck = SecurityChecker.SecurityCheckState.WARNING,
+                keyloggerCheck = SecurityChecker.SecurityCheckState.WARNING
+            )
+        )
+
+        // Get the shared SecurityChecker instance
+        securityChecker = SecurityConfigManager.getSecurityChecker()
+
         networkChangeReceiver = NetworkChangeReceiver()
         val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
         registerReceiver(networkChangeReceiver, filter)
-
-        // Initialize SecurityChecker with all checks in warning mode
-        securityChecker = SecurityChecker(this, SecurityChecker.SecurityConfig(
-            treatRootAsWarning = true,
-            treatDeveloperOptionsAsWarning = true,
-            treatMalwareAsWarning = true,
-            treatTamperingAsWarning = true
-        ))
         
         setupButtons()
-        performInitialSecurityChecks()
     }
 
     private fun setupButtons() {
-        binding.btnCheckRoot.setOnClickListener { this.checkRoot(securityChecker,{}) }
-        binding.btnCheckDeveloper.setOnClickListener { this.checkDeveloperOptions(securityChecker,{}) }
-        binding.btnCheckNetwork.setOnClickListener { this.checkNetwork(securityChecker,{}) }
-        binding.btnCheckMalware.setOnClickListener { this.checkMalware(securityChecker,{}) }
-        binding.btnCheckScreenMirroring.setOnClickListener { this.checkScreenMirroring(securityChecker,{}) }
-        binding.btnAppSpoofing.setOnClickListener { this.checkApplicationSpoofing(securityChecker,{}) }
-        binding.btnKeyLoggerDetection.setOnClickListener { this.checkKeyLoggerDetection(securityChecker,{}) }
+        // Update button click handlers to use lambda for better readability
+        binding.btnCheckRoot.setOnClickListener { 
+            this.checkRoot(securityChecker) { success ->
+                logCheckResult("Root", success)
+            }
+        }
+        binding.btnCheckDeveloper.setOnClickListener { 
+            this.checkDeveloperOptions(securityChecker) { success ->
+                logCheckResult("Developer Options", success)
+            }
+        }
+        binding.btnCheckNetwork.setOnClickListener { 
+            this.checkNetwork(securityChecker) { success ->
+                logCheckResult("Network", success)
+            }
+        }
+        binding.btnCheckMalware.setOnClickListener { 
+            this.checkMalware(securityChecker) { success ->
+                logCheckResult("Malware", success)
+            }
+        }
+        binding.btnCheckScreenMirroring.setOnClickListener { 
+            this.checkScreenMirroring(securityChecker) { success ->
+                logCheckResult("Screen Mirroring", success)
+            }
+        }
+        binding.btnAppSpoofing.setOnClickListener { 
+            this.checkApplicationSpoofing(securityChecker) { success ->
+                logCheckResult("App Spoofing", success)
+            }
+        }
+        binding.btnKeyLoggerDetection.setOnClickListener { 
+            this.checkKeyLoggerDetection(securityChecker) { success ->
+                logCheckResult("Keylogger", success)
+            }
+        }
+    }
+
+    private fun logCheckResult(checkName: String, success: Boolean) {
+        val result = if (success) "passed" else "failed"
+        Log.d("SecurityCheck", "$checkName check $result")
     }
 
     private fun performInitialSecurityChecks() {
-        // Check for root status on app launch
-     /*   when (val result = securityChecker.checkRootStatus()) {
-            is SecurityChecker.SecurityCheck.Critical -> {
-                SecurityChecker.showSecurityDialog(this, result.message, true)
+        // Perform all security checks in sequence
+        this.checkRoot(securityChecker) { rootSuccess ->
+            if (!rootSuccess) return@checkRoot
+            
+            this.checkDeveloperOptions(securityChecker) { devSuccess ->
+                if (!devSuccess) return@checkDeveloperOptions
+                
+                this.checkMalware(securityChecker) { malwareSuccess ->
+                    if (!malwareSuccess) return@checkMalware
+                    
+                    this.checkScreenMirroring(securityChecker) { mirrorSuccess ->
+                        if (!mirrorSuccess) return@checkScreenMirroring
+                        
+                        this.checkApplicationSpoofing(securityChecker) { spoofSuccess ->
+                            if (!spoofSuccess) return@checkApplicationSpoofing
+                            
+                            this.checkKeyLoggerDetection(securityChecker) { keyloggerSuccess ->
+                                if (!keyloggerSuccess) return@checkKeyLoggerDetection
+                                
+                                this.checkNetwork(securityChecker) { networkSuccess ->
+                                    if (!networkSuccess) return@checkNetwork
+                                    
+                                    Log.d("SecurityCheck", "All initial security checks completed successfully")
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            is SecurityChecker.SecurityCheck.Warning -> {
-                SecurityChecker.showSecurityDialog(this, result.message, false)
-            }
-            else -> checkDeveloperOptions()
-        }*/
+        }
     }
-
-
-
-
 }

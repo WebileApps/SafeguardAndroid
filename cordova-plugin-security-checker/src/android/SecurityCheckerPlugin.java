@@ -7,150 +7,176 @@ import org.apache.cordova.CordovaWebView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
+
+import android.content.Context;
+import android.util.Log;
 
 import com.kfintech.protect.SecurityChecker;
-import android.app.Activity;
+import com.kfintech.protect.SecurityConfigManager;
 
 public class SecurityCheckerPlugin extends CordovaPlugin {
-    private SecurityChecker securityChecker;
+    private static final String TAG = "SecurityCheckerPlugin";
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         
         // Get preferences from config.xml
-        boolean treatRootAsWarning = 
-            preferences.getBoolean("TREAT_ROOT_AS_WARNING", false);
-        boolean treatDeveloperOptionsAsWarning = 
-            preferences.getBoolean("TREAT_DEVELOPER_OPTIONS_AS_WARNING", false);
-        boolean treatMalwareAsWarning = 
-            preferences.getBoolean("TREAT_MALWARE_AS_WARNING", false);
-        boolean treatTamperingAsWarning = 
-            preferences.getBoolean("TREAT_TAMPERING_AS_WARNING", false);
+        String rootCheckState = getSecurityCheckState("ROOT_CHECK_STATE", "ERROR");
+        String devOptionsCheckState = getSecurityCheckState("DEVELOPER_OPTIONS_CHECK_STATE", "WARNING");
+        String malwareCheckState = getSecurityCheckState("MALWARE_CHECK_STATE", "WARNING");
+        String tamperingCheckState = getSecurityCheckState("TAMPERING_CHECK_STATE", "WARNING");
+        String networkSecurityCheckState = getSecurityCheckState("NETWORK_SECURITY_CHECK_STATE", "WARNING");
+        String screenSharingCheckState = getSecurityCheckState("SCREEN_SHARING_CHECK_STATE", "WARNING");
+        String appSpoofingCheckState = getSecurityCheckState("APP_SPOOFING_CHECK_STATE", "WARNING");
+        String keyloggerCheckState = getSecurityCheckState("KEYLOGGER_CHECK_STATE", "WARNING");
 
-        // Initialize SecurityChecker with preferences
-        SecurityChecker.SecurityConfig config = new SecurityChecker.SecurityConfig(
-            treatRootAsWarning,
-            treatDeveloperOptionsAsWarning,
-            treatMalwareAsWarning,
-            treatTamperingAsWarning
+        // Initialize SecurityConfigManager with the configuration from config.xml
+        SecurityConfigManager.INSTANCE.initialize(
+            cordova.getActivity().getApplicationContext(),
+            new SecurityChecker.SecurityConfig(
+                SecurityChecker.SecurityCheckState.valueOf(rootCheckState),
+                SecurityChecker.SecurityCheckState.valueOf(devOptionsCheckState),
+                SecurityChecker.SecurityCheckState.valueOf(malwareCheckState),
+                SecurityChecker.SecurityCheckState.valueOf(tamperingCheckState),
+                SecurityChecker.SecurityCheckState.valueOf(networkSecurityCheckState),
+                SecurityChecker.SecurityCheckState.valueOf(screenSharingCheckState),
+                SecurityChecker.SecurityCheckState.valueOf(appSpoofingCheckState),
+                SecurityChecker.SecurityCheckState.valueOf(keyloggerCheckState)
+            )
         );
-        
-        securityChecker = new SecurityChecker(cordova.getActivity(), config);
+    }
+
+    private String getSecurityCheckState(String preferenceName, String defaultValue) {
+        String value = preferences.getString(preferenceName, defaultValue);
+        // Validate that the value is a valid SecurityCheckState
+        try {
+            SecurityChecker.SecurityCheckState.valueOf(value);
+            return value;
+        } catch (IllegalArgumentException e) {
+            Log.w(TAG, "Invalid security check state for " + preferenceName + ": " + value + ". Using default: " + defaultValue);
+            return defaultValue;
+        }
     }
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        Activity activity = cordova.getActivity();
-        
+        Context context = cordova.getActivity().getApplicationContext();
+        SecurityChecker securityChecker = SecurityConfigManager.INSTANCE.getSecurityChecker();
+
         switch (action) {
-            case "checkSecurity":
-                checkSecurity(activity, callbackContext);
-                return true;
             case "checkRoot":
-                checkRoot(activity, callbackContext);
+                cordova.getThreadPool().execute(() -> {
+                    checkRoot(context, securityChecker, callbackContext);
+                });
                 return true;
             case "checkDeveloperOptions":
-                checkDeveloperOptions(activity, callbackContext);
-                return true;
-            case "checkNetwork":
-                checkNetwork(activity, callbackContext);
+                cordova.getThreadPool().execute(() -> {
+                    checkDeveloperOptions(context, securityChecker, callbackContext);
+                });
                 return true;
             case "checkMalware":
-                checkMalware(activity, callbackContext);
+                cordova.getThreadPool().execute(() -> {
+                    checkMalware(context, securityChecker, callbackContext);
+                });
+                return true;
+            case "checkNetwork":
+                cordova.getThreadPool().execute(() -> {
+                    checkNetwork(context, securityChecker, callbackContext);
+                });
                 return true;
             case "checkScreenMirroring":
-                checkScreenMirroring(activity, callbackContext);
+                cordova.getThreadPool().execute(() -> {
+                    checkScreenMirroring(context, securityChecker, callbackContext);
+                });
                 return true;
-            default:
-                return false;
+            case "checkAppSpoofing":
+                cordova.getThreadPool().execute(() -> {
+                    checkAppSpoofing(context, securityChecker, callbackContext);
+                });
+                return true;
+            case "checkKeyLogger":
+                cordova.getThreadPool().execute(() -> {
+                    checkKeyLogger(context, securityChecker, callbackContext);
+                });
+                return true;
         }
+        return false;
     }
 
-    private void checkSecurity(Activity activity, final CallbackContext callbackContext) {
-        cordova.getThreadPool().execute(new Runnable() {
-            public void run() {
-                JSONObject result = new JSONObject();
-                try {
-                    result.put("root", checkSecurityItem(securityChecker.checkRootStatus()));
-                    result.put("developerOptions", checkSecurityItem(securityChecker.checkDeveloperOptions()));
-                    result.put("network", checkSecurityItem(securityChecker.checkNetworkSecurity()));
-                    result.put("malware", checkSecurityItem(securityChecker.checkMalwareAndTampering()));
-                    result.put("screenMirroring", checkSecurityItem(securityChecker.checkScreenMirroring()));
-                    callbackContext.success(result);
-                } catch (JSONException e) {
-                    callbackContext.error("Error creating JSON response");
-                }
-            }
-        });
-    }
-
-    private void checkRoot(Activity activity, final CallbackContext callbackContext) {
-        cordova.getThreadPool().execute(new Runnable() {
-            public void run() {
-                SecurityChecker.SecurityCheck result = securityChecker.checkRootStatus();
-                handleSecurityResult(result, callbackContext);
-            }
-        });
-    }
-
-    private void checkDeveloperOptions(Activity activity, final CallbackContext callbackContext) {
-        cordova.getThreadPool().execute(new Runnable() {
-            public void run() {
-                SecurityChecker.SecurityCheck result = securityChecker.checkDeveloperOptions();
-                handleSecurityResult(result, callbackContext);
-            }
-        });
-    }
-
-    private void checkNetwork(Activity activity, final CallbackContext callbackContext) {
-        cordova.getThreadPool().execute(new Runnable() {
-            public void run() {
-                SecurityChecker.SecurityCheck result = securityChecker.checkNetworkSecurity();
-                handleSecurityResult(result, callbackContext);
-            }
-        });
-    }
-
-    private void checkMalware(Activity activity, final CallbackContext callbackContext) {
-        cordova.getThreadPool().execute(new Runnable() {
-            public void run() {
-                SecurityChecker.SecurityCheck result = securityChecker.checkMalwareAndTampering();
-                handleSecurityResult(result, callbackContext);
-            }
-        });
-    }
-
-    private void checkScreenMirroring(Activity activity, final CallbackContext callbackContext) {
-        cordova.getThreadPool().execute(new Runnable() {
-            public void run() {
-                SecurityChecker.SecurityCheck result = securityChecker.checkScreenMirroring();
-                handleSecurityResult(result, callbackContext);
-            }
-        });
-    }
-
-    private JSONObject checkSecurityItem(SecurityChecker.SecurityCheck check) throws JSONException {
-        JSONObject item = new JSONObject();
-        if (check instanceof SecurityChecker.SecurityCheck.Success) {
-            item.put("status", "success");
-            item.put("message", "");
-        } else if (check instanceof SecurityChecker.SecurityCheck.Warning) {
-            item.put("status", "warning");
-            item.put("message", ((SecurityChecker.SecurityCheck.Warning) check).getMessage());
-        } else if (check instanceof SecurityChecker.SecurityCheck.Critical) {
-            item.put("status", "critical");
-            item.put("message", ((SecurityChecker.SecurityCheck.Critical) check).getMessage());
-        }
-        return item;
-    }
-
-    private void handleSecurityResult(SecurityChecker.SecurityCheck result, CallbackContext callbackContext) {
+    // Individual check methods implementation...
+    private void checkRoot(Context context, SecurityChecker checker, CallbackContext callbackContext) {
         try {
-            callbackContext.success(checkSecurityItem(result));
-        } catch (JSONException e) {
-            callbackContext.error("Error creating JSON response");
+            SecurityChecker.SecurityCheck result = checker.checkRootStatus();
+            handleSecurityCheckResult(result, callbackContext);
+        } catch (Exception e) {
+            callbackContext.error("Error checking root status: " + e.getMessage());
+        }
+    }
+
+    private void checkDeveloperOptions(Context context, SecurityChecker checker, CallbackContext callbackContext) {
+        try {
+            SecurityChecker.SecurityCheck result = checker.checkDeveloperOptions();
+            handleSecurityCheckResult(result, callbackContext);
+        } catch (Exception e) {
+            callbackContext.error("Error checking developer options: " + e.getMessage());
+        }
+    }
+
+    private void checkMalware(Context context, SecurityChecker checker, CallbackContext callbackContext) {
+        try {
+            SecurityChecker.SecurityCheck result = checker.checkMalwareAndTampering();
+            handleSecurityCheckResult(result, callbackContext);
+        } catch (Exception e) {
+            callbackContext.error("Error checking malware: " + e.getMessage());
+        }
+    }
+
+    private void checkNetwork(Context context, SecurityChecker checker, CallbackContext callbackContext) {
+        try {
+            SecurityChecker.SecurityCheck result = checker.checkNetworkSecurity();
+            handleSecurityCheckResult(result, callbackContext);
+        } catch (Exception e) {
+            callbackContext.error("Error checking network security: " + e.getMessage());
+        }
+    }
+
+    private void checkScreenMirroring(Context context, SecurityChecker checker, CallbackContext callbackContext) {
+        try {
+            SecurityChecker.SecurityCheck result = checker.checkScreenMirroring();
+            handleSecurityCheckResult(result, callbackContext);
+        } catch (Exception e) {
+            callbackContext.error("Error checking screen mirroring: " + e.getMessage());
+        }
+    }
+
+    private void checkAppSpoofing(Context context, SecurityChecker checker, CallbackContext callbackContext) {
+        try {
+            SecurityChecker.SecurityCheck result = checker.checkAppSpoofing();
+            handleSecurityCheckResult(result, callbackContext);
+        } catch (Exception e) {
+            callbackContext.error("Error checking app spoofing: " + e.getMessage());
+        }
+    }
+
+    private void checkKeyLogger(Context context, SecurityChecker checker, CallbackContext callbackContext) {
+        try {
+            SecurityChecker.SecurityCheck result = checker.checkKeyLoggerDetection();
+            handleSecurityCheckResult(result, callbackContext);
+        } catch (Exception e) {
+            callbackContext.error("Error checking keylogger: " + e.getMessage());
+        }
+    }
+
+    private void handleSecurityCheckResult(SecurityChecker.SecurityCheck result, CallbackContext callbackContext) {
+        if (result instanceof SecurityChecker.SecurityCheck.Success) {
+            callbackContext.success("Security check passed");
+        } else if (result instanceof SecurityChecker.SecurityCheck.Warning) {
+            SecurityChecker.SecurityCheck.Warning warning = (SecurityChecker.SecurityCheck.Warning) result;
+            callbackContext.success(warning.getMessage());
+        } else if (result instanceof SecurityChecker.SecurityCheck.Critical) {
+            SecurityChecker.SecurityCheck.Critical critical = (SecurityChecker.SecurityCheck.Critical) result;
+            callbackContext.error(critical.getMessage());
         }
     }
 }

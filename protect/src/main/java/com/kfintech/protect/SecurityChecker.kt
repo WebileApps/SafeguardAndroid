@@ -30,22 +30,33 @@ class SecurityChecker(private val context: Context, private val config: Security
 
     // Configuration class to control security check behavior
     data class SecurityConfig(
-        val treatRootAsWarning: Boolean = false,
-        val treatDeveloperOptionsAsWarning: Boolean = false,
-        val treatMalwareAsWarning: Boolean = false,
-        val treatTamperingAsWarning: Boolean = false,
+        val rootCheck: SecurityCheckState = SecurityCheckState.ERROR,
+        val developerOptionsCheck: SecurityCheckState = SecurityCheckState.ERROR,
+        val malwareCheck: SecurityCheckState = SecurityCheckState.ERROR,
+        val tamperingCheck: SecurityCheckState = SecurityCheckState.ERROR,
+        val networkSecurityCheck: SecurityCheckState = SecurityCheckState.WARNING,
+        val screenSharingCheck: SecurityCheckState = SecurityCheckState.WARNING,
+        val appSpoofingCheck: SecurityCheckState = SecurityCheckState.WARNING,
+        val keyloggerCheck: SecurityCheckState = SecurityCheckState.WARNING,
         val appSpoofingAsWarning: Boolean = false
     )
 
+    enum class SecurityCheckState {
+        DISABLED, WARNING, ERROR
+    }
+
     // Check for rooted device
     fun checkRootStatus(): SecurityCheck {
+        if (config.rootCheck == SecurityCheckState.DISABLED) {
+            return SecurityCheck.Success
+        }
+        
         val rootBeer = RootUtil.isDeviceRooted
         return if (rootBeer) {
-            if (config.treatRootAsWarning) {
-                SecurityCheck.Critical(context.getString(R.string.rooted_critical))
-            } else {
-
+            if (config.rootCheck == SecurityCheckState.WARNING) {
                 SecurityCheck.Warning(context.getString(R.string.rooted_warning))
+            } else {
+                SecurityCheck.Critical(context.getString(R.string.rooted_critical))
             }
         } else {
             SecurityCheck.Success
@@ -54,6 +65,10 @@ class SecurityChecker(private val context: Context, private val config: Security
 
     // Check developer options
     fun checkDeveloperOptions(): SecurityCheck {
+        if (config.developerOptionsCheck == SecurityCheckState.DISABLED) {
+            return SecurityCheck.Success
+        }
+
         val developerMode = Settings.Secure.getInt(
             context.contentResolver,
             Settings.Global.DEVELOPMENT_SETTINGS_ENABLED, 0
@@ -69,22 +84,27 @@ class SecurityChecker(private val context: Context, private val config: Security
             Settings.Secure.ALLOW_MOCK_LOCATION
         ) != "0"
 
-
-
         return when {
-            developerMode -> createDevOptionsResponse(context.getString(R.string.developer_options_warning))
-            usbDebugging -> createDevOptionsResponse(context.getString(R.string.usb_debugging_warning))
-            mockLocation -> createDevOptionsResponse(context.getString(R.string.mock_location_warning))
-            isTimeManipulated(context) -> createDevOptionsResponse(context.getString(R.string.auto_time_warning))
+            developerMode -> createDevOptionsResponse("Developer options are enabled.")
+            usbDebugging -> createDevOptionsResponse("USB debugging is enabled.")
+            mockLocation -> createDevOptionsResponse("Mock location is enabled.")
+            isTimeManipulated(context) -> createDevOptionsResponse("Automatic time settings are disabled.")
             else -> SecurityCheck.Success
         }
     }
+
+    private fun createDevOptionsResponse(message: String): SecurityCheck {
+        return when (config.developerOptionsCheck) {
+            SecurityCheckState.WARNING -> SecurityCheck.Warning("$message This may pose security risks.")
+            SecurityCheckState.ERROR -> SecurityCheck.Critical("$message Please disable it to continue using the application.")
+            SecurityCheckState.DISABLED -> SecurityCheck.Success
+        }
+    }
+
     private fun isTimeManipulated(context: Context): Boolean {
         try {
-            val autoTime =
-                Settings.Global.getInt(context.contentResolver, Settings.Global.AUTO_TIME)
-            val autoTimeZone =
-                Settings.Global.getInt(context.contentResolver, Settings.Global.AUTO_TIME_ZONE)
+            val autoTime = Settings.Global.getInt(context.contentResolver, Settings.Global.AUTO_TIME)
+            val autoTimeZone = Settings.Global.getInt(context.contentResolver, Settings.Global.AUTO_TIME_ZONE)
             return autoTime == 0 || autoTimeZone == 0
         } catch (e: Settings.SettingNotFoundException) {
             e.printStackTrace()
@@ -92,34 +112,40 @@ class SecurityChecker(private val context: Context, private val config: Security
         }
     }
 
-    private fun createDevOptionsResponse(message: String): SecurityCheck {
-        return if (config.treatDeveloperOptionsAsWarning) {
-            SecurityCheck.Warning("$message This may pose security risks.")
-        } else {
-            SecurityCheck.Critical("$message Please disable it to continue using the application.")
-        }
-    }
-
     // Check network security
     fun checkNetworkSecurity(): SecurityCheck {
+        if (config.networkSecurityCheck == SecurityCheckState.DISABLED) {
+            return SecurityCheck.Success
+        }
+
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = connectivityManager.activeNetwork
         val capabilities = connectivityManager.getNetworkCapabilities(network)
 
         return when {
-            capabilities == null -> SecurityCheck.Warning("No active network connection")
-            isVPNActive(context) ->
-                SecurityCheck.Warning(context.getString(R.string.vpn_warning))
-            isProxySet(context) ->
-                SecurityCheck.Warning(context.getString(R.string.proxy_warning))
-            !isWifiSecure(context) ->
-                SecurityCheck.Warning(context.getString(R.string.usecured_network_warning))
+            capabilities == null -> createNetworkSecurityResponse("No active network connection")
+            isVPNActive(context) -> createNetworkSecurityResponse(context.getString(R.string.vpn_warning))
+            isProxySet(context) -> createNetworkSecurityResponse(context.getString(R.string.proxy_warning))
+            !isWifiSecure(context) -> createNetworkSecurityResponse(context.getString(R.string.usecured_network_warning))
             else -> SecurityCheck.Success
+        }
+    }
+
+    private fun createNetworkSecurityResponse(message: String): SecurityCheck {
+        return when (config.networkSecurityCheck) {
+            SecurityCheckState.WARNING -> SecurityCheck.Warning(message)
+            SecurityCheckState.ERROR -> SecurityCheck.Critical(message)
+            SecurityCheckState.DISABLED -> SecurityCheck.Success
         }
     }
 
     // Check for malware and tampering
     fun checkMalwareAndTampering(): SecurityCheck {
+        if (config.malwareCheck == SecurityCheckState.DISABLED && 
+            config.tamperingCheck == SecurityCheckState.DISABLED) {
+            return SecurityCheck.Success
+        }
+
         try {
             val packageInfo = context.packageManager.getPackageInfo(
                 context.packageName,
@@ -134,63 +160,82 @@ class SecurityChecker(private val context: Context, private val config: Security
             }
 
             if (!verifySignature(signatures!!)) {
-                return if (config.treatTamperingAsWarning) {
-                    SecurityCheck.Warning("Application signature verification failed. This may indicate tampering.")
-                } else {
-                    SecurityCheck.Critical("Application signature is not as expected. Please reinstall from official source.")
+                return when (config.tamperingCheck) {
+                    SecurityCheckState.WARNING -> SecurityCheck.Warning("Application signature verification failed. This may indicate tampering.")
+                    SecurityCheckState.ERROR -> SecurityCheck.Critical("Application signature is not as expected. Please reinstall from official source.")
+                    SecurityCheckState.DISABLED -> SecurityCheck.Success
                 }
             }
 
             if (Settings.canDrawOverlays(context)) {
-                return if (config.treatMalwareAsWarning) {
-                    SecurityCheck.Warning("Screen overlay detected. This could pose security risks.")
-                } else {
-                    SecurityCheck.Critical("Screen overlay detected, which could be malicious.")
+                return when (config.malwareCheck) {
+                    SecurityCheckState.WARNING -> SecurityCheck.Warning("Screen overlay detected. This could pose security risks.")
+                    SecurityCheckState.ERROR -> SecurityCheck.Critical("Screen overlay detected, which could be malicious.")
+                    SecurityCheckState.DISABLED -> SecurityCheck.Success
                 }
             }
 
             return SecurityCheck.Success
         } catch (e: Exception) {
-            return if (config.treatMalwareAsWarning) {
-                SecurityCheck.Warning("Security verification failed. This may pose risks.")
-            } else {
-                SecurityCheck.Critical("Security verification failed.")
+            return when (config.malwareCheck) {
+                SecurityCheckState.WARNING -> SecurityCheck.Warning("Security verification failed. This may pose risks.")
+                SecurityCheckState.ERROR -> SecurityCheck.Critical("Security verification failed.")
+                SecurityCheckState.DISABLED -> SecurityCheck.Success
             }
         }
     }
 
     // Check for screen mirroring and remote access
     fun checkScreenMirroring(): SecurityCheck {
-        val projectionManager = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        if(ScreenSharingDetector.isScreenSharingActive(context)){
-            return SecurityCheck.Warning(context.getString(R.string.screen_sharing_warniong))
-        }else if(ScreenSharingDetector.isScreenMirrored(context)){
-            return SecurityCheck.Warning(context.getString(R.string.screen_mirroring_warniong))
-        } else if (isScreenRecording()) {
-            return SecurityCheck.Warning(context.getString(R.string.screen_recording_warniong))
+        if (config.screenSharingCheck == SecurityCheckState.DISABLED) {
+            return SecurityCheck.Success
+        }
+
+        val message = when {
+            ScreenSharingDetector.isScreenSharingActive(context) -> context.getString(R.string.screen_sharing_warniong)
+            ScreenSharingDetector.isScreenMirrored(context) -> context.getString(R.string.screen_mirroring_warniong)
+            isScreenRecording() -> context.getString(R.string.screen_recording_warniong)
+            else -> return SecurityCheck.Success
+        }
+
+        return when (config.screenSharingCheck) {
+            SecurityCheckState.WARNING -> SecurityCheck.Warning(message)
+            SecurityCheckState.ERROR -> SecurityCheck.Critical(message)
+            SecurityCheckState.DISABLED -> SecurityCheck.Success
+        }
+    }
+
+    // Check for app spoofing
+    fun checkAppSpoofing(): SecurityCheck {
+        if (config.appSpoofingCheck == SecurityCheckState.DISABLED) {
+            return SecurityCheck.Success
+        }
+
+        if (context.packageName != com.kfintech.protect.getPackageName(context)) {
+            Log.e("Security", "Application spoofing detected")
+            return when (config.appSpoofingCheck) {
+                SecurityCheckState.WARNING -> SecurityCheck.Warning(context.getString(R.string.app_spoofing_warniong))
+                SecurityCheckState.ERROR -> SecurityCheck.Critical(context.getString(R.string.app_spoofing_warniong))
+                SecurityCheckState.DISABLED -> SecurityCheck.Success
+            }
         }
         return SecurityCheck.Success
     }
- // Check for app spoofing
-    fun checkAppSpoofing(): SecurityCheck {
 
-     if (context.packageName != com.kfintech.protect.getPackageName(context)) {
-         Log.e("Security", "Application spoofing detected")
-         return SecurityCheck.Warning(context.getString(R.string.app_spoofing_warniong))
-         // System.exit(0)
-     }
-     return SecurityCheck.Success
-    }
- // Check for app spoofing
+    // Check for keylogger
     fun checkKeyLoggerDetection(): SecurityCheck {
-     if (KeyloggerDetection.isAccessibilityServiceEnabled(context)) {
-         return SecurityCheck.Warning(context.getString(R.string.accecibility_warniong))
+        if (config.keyloggerCheck == SecurityCheckState.DISABLED) {
+            return SecurityCheck.Success
+        }
 
-     }/* else {
-         return SecurityCheck.Warning(context.getString(R.string.accecibility_not_warniong))
-     }*/
-     return SecurityCheck.Success
+        if (KeyloggerDetection.isAccessibilityServiceEnabled(context)) {
+            return when (config.keyloggerCheck) {
+                SecurityCheckState.WARNING -> SecurityCheck.Warning(context.getString(R.string.accecibility_warniong))
+                SecurityCheckState.ERROR -> SecurityCheck.Critical(context.getString(R.string.accecibility_warniong))
+                SecurityCheckState.DISABLED -> SecurityCheck.Success
+            }
+        }
+        return SecurityCheck.Success
     }
 
     private fun isScreenRecording(): Boolean {
@@ -210,10 +255,12 @@ class SecurityChecker(private val context: Context, private val config: Security
             AlertDialog.Builder(context)
                 .setTitle(if (isCritical) "Security Error" else "Security Warning")
                 .setMessage(message)
-                .setPositiveButton("OK") { dialog, _ ->
+                .setPositiveButton(if (isCritical) "Quit" else "Continue Anyway") { dialog, _ ->
                     dialog.dismiss()
                     if (isCritical) {
                         exitProcess(0)
+                    } else {
+                        onResponse?.invoke(true)
                     }
                 }
                 .setCancelable(!isCritical)

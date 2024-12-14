@@ -49,11 +49,24 @@ afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
-                from components.release
-
                 groupId = 'com.github.webileapps'
                 artifactId = 'safeguard'
                 version = '0.1.0'
+                
+                from components.release
+
+                pom {
+                    name = 'Safeguard'
+                    description = 'Android security library for various security checks'
+                    url = 'https://github.com/WebileApps/SafeguardAndroid'
+                    
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                            url = 'https://opensource.org/licenses/MIT'
+                        }
+                    }
+                }
             }
         }
     }

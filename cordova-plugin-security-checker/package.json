@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-security-checker",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Cordova plugin for security checks with configurable warning/critical behaviors",
   "cordova": {
     "id": "cordova-plugin-security-checker",

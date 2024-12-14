@@ -1,9 +1,11 @@
-package com.kfintech.protect.sample
+package com.webileapps.protect.sample
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
+import android.os.Process
 import androidx.lifecycle.ProcessLifecycleOwner
-import com.kfintech.protect.AppLifecycleObserver
+import com.webileapps.safeguard.AppLifecycleObserver
 
 class MyApplication : Application() {
 

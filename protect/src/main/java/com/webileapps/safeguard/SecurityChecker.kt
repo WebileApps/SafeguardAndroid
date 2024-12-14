@@ -1,4 +1,4 @@
-package com.kfintech.protect
+package com.webileapps.safeguard
 
 import android.content.Context
 import android.content.Intent
@@ -13,9 +13,9 @@ import android.content.pm.Signature
 import android.media.projection.MediaProjectionManager
 import android.os.PowerManager
 import android.util.Log
-import com.kfintech.protect.NetworkUtils.isProxySet
-import com.kfintech.protect.NetworkUtils.isVPNActive
-import com.kfintech.protect.NetworkUtils.isWifiSecure
+import com.webileapps.safeguard.NetworkUtils.isProxySet
+import com.webileapps.safeguard.NetworkUtils.isVPNActive
+import com.webileapps.safeguard.NetworkUtils.isWifiSecure
 import com.scottyab.rootbeer.RootBeer
 import java.security.MessageDigest
 import kotlin.system.exitProcess
@@ -211,7 +211,7 @@ class SecurityChecker(private val context: Context, private val config: Security
             return SecurityCheck.Success
         }
 
-        if (context.packageName != com.kfintech.protect.getPackageName(context)) {
+        if (context.packageName != com.webileapps.safeguard.getPackageName(context)) {
             Log.e("Security", "Application spoofing detected")
             return when (config.appSpoofingCheck) {
                 SecurityCheckState.WARNING -> SecurityCheck.Warning(context.getString(R.string.app_spoofing_warniong))

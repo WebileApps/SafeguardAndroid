@@ -1,4 +1,4 @@
-package com.kfintech.protect
+package com.webileapps.safeguard
 
 import android.content.Context
 import android.os.Bundle

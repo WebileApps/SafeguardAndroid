@@ -1,14 +1,13 @@
-package com.kfintech.protect
+package com.webileapps.safeguard
 
-import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
+import android.util.Log
 import android.widget.Toast
-import com.kfintech.protect.SecurityChecker.SecurityCheck
+import com.webileapps.safeguard.SecurityChecker.SecurityCheck
 
-
-
-fun Activity.showToast(message: String) {
+fun Context.showToast(message: String) {
     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }
 

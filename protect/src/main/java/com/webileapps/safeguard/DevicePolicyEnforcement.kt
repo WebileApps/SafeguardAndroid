@@ -1,4 +1,4 @@
-package com.kfintech.protect
+package com.webileapps.safeguard
 
 import android.app.AlertDialog
 import android.content.Context

@@ -1,4 +1,4 @@
-package com.kfintech.protect.cordova;
+package com.webileapps.safeguard.cordova;
 
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
@@ -11,8 +11,8 @@ import org.json.JSONException;
 import android.content.Context;
 import android.util.Log;
 
-import com.kfintech.protect.SecurityChecker;
-import com.kfintech.protect.SecurityConfigManager;
+import com.webileapps.safeguard.SecurityChecker;
+import com.webileapps.safeguard.SecurityConfigManager;
 
 public class SecurityCheckerPlugin extends CordovaPlugin {
     private static final String TAG = "SecurityCheckerPlugin";

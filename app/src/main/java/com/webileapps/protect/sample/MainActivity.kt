@@ -1,22 +1,22 @@
-package com.kfintech.protect.sample
+package com.webileapps.protect.sample
 
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import com.kfintech.protect.AppActivity
-import com.kfintech.protect.NetworkChangeReceiver
-import com.kfintech.protect.SecurityChecker
-import com.kfintech.protect.SecurityConfigManager
-import com.kfintech.protect.checkApplicationSpoofing
-import com.kfintech.protect.checkDeveloperOptions
-import com.kfintech.protect.checkKeyLoggerDetection
-import com.kfintech.protect.checkMalware
-import com.kfintech.protect.checkNetwork
-import com.kfintech.protect.checkRoot
-import com.kfintech.protect.checkScreenMirroring
-import com.kfintech.protect.sample.databinding.ActivityMainBinding
+import com.webileapps.safeguard.AppActivity
+import com.webileapps.safeguard.NetworkChangeReceiver
+import com.webileapps.safeguard.SecurityChecker
+import com.webileapps.safeguard.SecurityConfigManager
+import com.webileapps.safeguard.checkApplicationSpoofing
+import com.webileapps.safeguard.checkDeveloperOptions
+import com.webileapps.safeguard.checkKeyLoggerDetection
+import com.webileapps.safeguard.checkMalware
+import com.webileapps.safeguard.checkNetwork
+import com.webileapps.safeguard.checkRoot
+import com.webileapps.safeguard.checkScreenMirroring
+import com.webileapps.protect.sample.databinding.ActivityMainBinding
 
 class MainActivity : AppActivity() {
     private lateinit var binding: ActivityMainBinding

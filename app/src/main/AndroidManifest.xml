@@ -23,7 +23,7 @@
         </activity>
 
         <meta-data
-            android:name="package_name"
-            android:value="com.kfintech.protect.sample"/>
+            android:name="com.google.android.gms.version"
+            android:value="com.webileapps.protect.sample"/>
     </application>
 </manifest>

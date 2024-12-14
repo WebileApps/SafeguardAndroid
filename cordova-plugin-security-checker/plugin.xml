@@ -14,7 +14,7 @@
     <platform name="android">
         <config-file target="config.xml" parent="/*">
             <feature name="SecurityChecker">
-                <param name="android-package" value="com.kfintech.protect.cordova.SecurityCheckerPlugin"/>
+                <param name="android-package" value="com.webileapps.safeguard.cordova.SecurityCheckerPlugin"/>
             </feature>
             
             <!-- Security Check States: ERROR, WARNING, or DISABLED -->
@@ -29,7 +29,7 @@
         </config-file>
         
         <source-file src="src/android/SecurityCheckerPlugin.java" 
-                     target-dir="src/com/kfintech/protect/cordova" />
+                     target-dir="src/com/webileapps/safeguard/cordova" />
                      
         <framework src="protect" type="gradleReference" />
     </platform>

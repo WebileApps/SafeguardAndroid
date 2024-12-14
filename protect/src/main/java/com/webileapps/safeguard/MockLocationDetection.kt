@@ -1,4 +1,4 @@
-package com.kfintech.protect
+package com.webileapps.safeguard
 
 import android.Manifest
 import android.content.Context

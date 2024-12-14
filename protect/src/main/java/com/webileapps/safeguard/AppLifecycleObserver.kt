@@ -1,4 +1,4 @@
-package com.kfintech.protect
+package com.webileapps.safeguard
 
 import ScreenSharingDetector
 import android.content.Context

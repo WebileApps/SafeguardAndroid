@@ -37,12 +37,27 @@ class SecurityChecker(private val context: Context, private val config: Security
         val networkSecurityCheck: SecurityCheckState = SecurityCheckState.WARNING,
         val screenSharingCheck: SecurityCheckState = SecurityCheckState.WARNING,
         val appSpoofingCheck: SecurityCheckState = SecurityCheckState.WARNING,
-        val keyloggerCheck: SecurityCheckState = SecurityCheckState.WARNING,
-        val appSpoofingAsWarning: Boolean = false
+        val keyloggerCheck: SecurityCheckState = SecurityCheckState.WARNING
     )
 
+    @JvmField
+    val DISABLED = SecurityCheckState.DISABLED
+
+    @JvmField
+    val WARNING = SecurityCheckState.WARNING
+
+    @JvmField
+    val ERROR = SecurityCheckState.ERROR
+
     enum class SecurityCheckState {
-        DISABLED, WARNING, ERROR
+        DISABLED, WARNING, ERROR;
+
+        companion object {
+            @JvmStatic
+            fun fromString(value: String): SecurityCheckState {
+                return valueOf(value.uppercase())
+            }
+        }
     }
 
     // Check for rooted device

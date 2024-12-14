@@ -35,14 +35,14 @@ public class SecurityCheckerPlugin extends CordovaPlugin {
         SecurityConfigManager.INSTANCE.initialize(
             cordova.getActivity().getApplicationContext(),
             new SecurityChecker.SecurityConfig(
-                SecurityChecker.SecurityCheckState.valueOf(rootCheckState),
-                SecurityChecker.SecurityCheckState.valueOf(devOptionsCheckState),
-                SecurityChecker.SecurityCheckState.valueOf(malwareCheckState),
-                SecurityChecker.SecurityCheckState.valueOf(tamperingCheckState),
-                SecurityChecker.SecurityCheckState.valueOf(networkSecurityCheckState),
-                SecurityChecker.SecurityCheckState.valueOf(screenSharingCheckState),
-                SecurityChecker.SecurityCheckState.valueOf(appSpoofingCheckState),
-                SecurityChecker.SecurityCheckState.valueOf(keyloggerCheckState)
+                SecurityChecker.SecurityCheckState.fromString(rootCheckState),
+                SecurityChecker.SecurityCheckState.fromString(devOptionsCheckState),
+                SecurityChecker.SecurityCheckState.fromString(malwareCheckState),
+                SecurityChecker.SecurityCheckState.fromString(tamperingCheckState),
+                SecurityChecker.SecurityCheckState.fromString(networkSecurityCheckState),
+                SecurityChecker.SecurityCheckState.fromString(screenSharingCheckState),
+                SecurityChecker.SecurityCheckState.fromString(appSpoofingCheckState),
+                SecurityChecker.SecurityCheckState.fromString(keyloggerCheckState)
             )
         );
     }
@@ -51,7 +51,7 @@ public class SecurityCheckerPlugin extends CordovaPlugin {
         String value = preferences.getString(preferenceName, defaultValue);
         // Validate that the value is a valid SecurityCheckState
         try {
-            SecurityChecker.SecurityCheckState.valueOf(value);
+            SecurityChecker.SecurityCheckState.fromString(value);
             return value;
         } catch (IllegalArgumentException e) {
             Log.w(TAG, "Invalid security check state for " + preferenceName + ": " + value + ". Using default: " + defaultValue);

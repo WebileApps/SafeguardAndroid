@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.kfintech.protect.sample" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.webileapps.protect.sample" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>SecurityCheckerDemo</name>
     <description>Security Checker Demo Application</description>
-    <author email="dev@kfintech.com" href="http://kfintech.com">
-        KFintech Team
+    <author email="dev@webileapps.com" href="https://www.teamwa.io">
+        WebileApps Team
     </author>
     <content src="index.html" />
     

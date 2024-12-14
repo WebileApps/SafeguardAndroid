@@ -1,5 +1,5 @@
 {
-  "name": "com.kfintech.protect.sample",
+  "name": "com.webileapps.protect.sample",
   "displayName": "SecurityCheckerDemo",
   "version": "1.0.0",
   "description": "Security Checker Demo Application",
@@ -10,7 +10,7 @@
   "keywords": [
     "ecosystem:cordova"
   ],
-  "author": "KFintech Team",
+  "author": "WebileApps Team",
   "license": "Apache-2.0",
   "devDependencies": {
     "cordova-android": "^10.1.2",

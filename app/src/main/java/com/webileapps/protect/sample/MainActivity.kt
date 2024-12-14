@@ -4,7 +4,6 @@ import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import com.webileapps.safeguard.AppActivity
 import com.webileapps.safeguard.NetworkChangeReceiver
 import com.webileapps.safeguard.SecurityChecker

@@ -1,38 +1,42 @@
 var exec = require('cordova/exec');
 
-var SecurityChecker = {
+var Safeguard = {
     SecurityCheckState: {
         ERROR: 'ERROR',
         WARNING: 'WARNING',
         DISABLED: 'DISABLED'
     },
 
+    startSecurityChecks: function(success, error) {
+        exec(success, error, 'Safeguard', 'startSecurityChecks', []);
+    },
+
     checkRoot: function(success, error) {
-        exec(success, error, 'SecurityChecker', 'checkRoot', []);
+        exec(success, error, 'Safeguard', 'checkRoot', []);
     },
 
     checkDeveloperOptions: function(success, error) {
-        exec(success, error, 'SecurityChecker', 'checkDeveloperOptions', []);
+        exec(success, error, 'Safeguard', 'checkDeveloperOptions', []);
     },
 
     checkMalware: function(success, error) {
-        exec(success, error, 'SecurityChecker', 'checkMalware', []);
+        exec(success, error, 'Safeguard', 'checkMalware', []);
     },
 
     checkNetwork: function(success, error) {
-        exec(success, error, 'SecurityChecker', 'checkNetwork', []);
+        exec(success, error, 'Safeguard', 'checkNetwork', []);
     },
 
     checkScreenMirroring: function(success, error) {
-        exec(success, error, 'SecurityChecker', 'checkScreenMirroring', []);
+        exec(success, error, 'Safeguard', 'checkScreenMirroring', []);
     },
 
     checkAppSpoofing: function(success, error) {
-        exec(success, error, 'SecurityChecker', 'checkAppSpoofing', []);
+        exec(success, error, 'Safeguard', 'checkAppSpoofing', []);
     },
 
     checkKeyLogger: function(success, error) {
-        exec(success, error, 'SecurityChecker', 'checkKeyLogger', []);
+        exec(success, error, 'Safeguard', 'checkKeyLogger', []);
     },
 
     checkAll: function(success, error) {
@@ -126,4 +130,4 @@ var SecurityChecker = {
     }
 };
 
-module.exports = SecurityChecker;
+module.exports = Safeguard;

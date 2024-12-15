@@ -18,6 +18,7 @@ import com.webileapps.safeguard.NetworkUtils.isVPNActive
 import com.webileapps.safeguard.NetworkUtils.isWifiSecure
 import com.scottyab.rootbeer.RootBeer
 import java.security.MessageDigest
+import java.util.function.Consumer
 import kotlin.system.exitProcess
 
 class SecurityChecker(private val context: Context, private val config: SecurityConfig = SecurityConfig()) {
@@ -26,6 +27,68 @@ class SecurityChecker(private val context: Context, private val config: Security
         object Success : SecurityCheck()
         data class Warning(val message: String) : SecurityCheck()
         data class Critical(val message: String) : SecurityCheck()
+    }
+
+    private data class SecurityDialogInfo(
+        val message: String,
+        val isCritical: Boolean,
+        val onResponse: ((Boolean) -> Unit)? = null
+    )
+
+    private val dialogQueue = mutableListOf<SecurityDialogInfo>()
+    private var isShowingDialog = false
+
+    private fun showNextDialog(context: Context) {
+        if (isShowingDialog || dialogQueue.isEmpty()) {
+            return
+        }
+
+        isShowingDialog = true
+        val dialogInfo = dialogQueue.removeAt(0)
+
+        AlertDialog.Builder(context)
+            .setTitle(if (dialogInfo.isCritical) "Security Error" else "Security Warning")
+            .setMessage(dialogInfo.message)
+            .setPositiveButton(if (dialogInfo.isCritical) "Quit" else "Continue Anyway") { dialog, _ ->
+                dialog.dismiss()
+                if (dialogInfo.isCritical) {
+                    exitProcess(0)
+                } else {
+                    dialogInfo.onResponse?.invoke(true)
+                    isShowingDialog = false
+                    showNextDialog(context) // Show next dialog if any
+                }
+            }
+            .setOnDismissListener {
+                if (!dialogInfo.isCritical) {
+                    isShowingDialog = false
+                    showNextDialog(context)
+                }
+            }
+            .setCancelable(!dialogInfo.isCritical)
+            .create()
+            .apply {
+                setOnDismissListener {
+                    if (!dialogInfo.isCritical) {
+                        isShowingDialog = false
+                        showNextDialog(context)
+                    }
+                }
+                show()
+            }
+    }
+
+    @JvmOverloads
+    fun showSecurityDialog(
+        context: Context,
+        message: String,
+        isCritical: Boolean,
+        onResponse: Consumer<Boolean>? = null
+    ) {
+        dialogQueue.add(SecurityDialogInfo(message, isCritical, onResponse?.let { consumer -> { value -> consumer.accept(value) } }))
+        if (!isShowingDialog) {
+            showNextDialog(context)
+        }
     }
 
     // Configuration class to control security check behavior
@@ -37,7 +100,8 @@ class SecurityChecker(private val context: Context, private val config: Security
         val networkSecurityCheck: SecurityCheckState = SecurityCheckState.WARNING,
         val screenSharingCheck: SecurityCheckState = SecurityCheckState.WARNING,
         val appSpoofingCheck: SecurityCheckState = SecurityCheckState.WARNING,
-        val keyloggerCheck: SecurityCheckState = SecurityCheckState.WARNING
+        val keyloggerCheck: SecurityCheckState = SecurityCheckState.WARNING,
+        val expectedPackageName: String? = null
     )
 
     @JvmField
@@ -226,8 +290,10 @@ class SecurityChecker(private val context: Context, private val config: Security
             return SecurityCheck.Success
         }
 
-        if (context.packageName != com.webileapps.safeguard.getPackageName(context)) {
-            Log.e("Security", "Application spoofing detected")
+        val expectedPackage = config.expectedPackageName ?: ""
+        val calculatedPackageName = context.packageName
+        if (expectedPackage != calculatedPackageName) {
+            Log.e("Security", "Application spoofing detected. Expected: $expectedPackage, Found: $calculatedPackageName")
             return when (config.appSpoofingCheck) {
                 SecurityCheckState.WARNING -> SecurityCheck.Warning(context.getString(R.string.app_spoofing_warniong))
                 SecurityCheckState.ERROR -> SecurityCheck.Critical(context.getString(R.string.app_spoofing_warniong))
@@ -262,24 +328,5 @@ class SecurityChecker(private val context: Context, private val config: Security
     private fun verifySignature(signatures: Array<Signature>): Boolean {
         // In production, you would compare against your known good signature
         return signatures.isNotEmpty()
-    }
-
-
-    companion object {
-        fun showSecurityDialog(context: Context, message: String, isCritical: Boolean, onResponse: ((Boolean) -> Unit)? = null) {
-            AlertDialog.Builder(context)
-                .setTitle(if (isCritical) "Security Error" else "Security Warning")
-                .setMessage(message)
-                .setPositiveButton(if (isCritical) "Quit" else "Continue Anyway") { dialog, _ ->
-                    dialog.dismiss()
-                    if (isCritical) {
-                        exitProcess(0)
-                    } else {
-                        onResponse?.invoke(true)
-                    }
-                }
-                .setCancelable(!isCritical)
-                .show()
-        }
     }
 }

@@ -40,7 +40,8 @@ class MainActivity : AppActivity() {
                 appSpoofingCheck = SecurityChecker.SecurityCheckState.WARNING,
                 networkSecurityCheck = SecurityChecker.SecurityCheckState.WARNING,
                 screenSharingCheck = SecurityChecker.SecurityCheckState.WARNING,
-                keyloggerCheck = SecurityChecker.SecurityCheckState.WARNING
+                keyloggerCheck = SecurityChecker.SecurityCheckState.WARNING,
+                expectedPackageName = "com.webileapps.protect.sample"
             )
         )
 

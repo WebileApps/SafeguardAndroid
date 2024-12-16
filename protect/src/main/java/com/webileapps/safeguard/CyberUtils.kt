@@ -8,6 +8,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 
 fun Context.showToast(message: String) {
     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
@@ -94,6 +95,32 @@ fun Context.checkApplicationSpoofing(securityChecker: SecurityChecker, onChecked
 
 fun Context.checkKeyLoggerDetection(securityChecker: SecurityChecker, onChecked: (Boolean) -> Unit) {
     when (val result = securityChecker.checkKeyLoggerDetection()) {
+        is SecurityChecker.SecurityCheck.Warning -> {
+            SecurityConfigManager.getSecurityChecker().showSecurityDialog(AppActivity.context, result.message, false) { userAcknowledged ->
+                if (userAcknowledged) {
+                    onChecked(true)
+                }
+            }
+        }
+        else -> onChecked(true)
+    }
+}
+
+
+fun Context.appSignatureCheck(securityChecker: SecurityChecker, onChecked: (Boolean) -> Unit) {
+    when (val result = securityChecker.appSignatureCompare()) {
+        is SecurityChecker.SecurityCheck.Warning -> {
+            SecurityConfigManager.getSecurityChecker().showSecurityDialog(AppActivity.context, result.message, false) { userAcknowledged ->
+                if (userAcknowledged) {
+                    onChecked(true)
+                }
+            }
+        }
+        else -> onChecked(true)
+    }
+}
+fun Context.checkInvoiceCall(securityChecker: SecurityChecker,inCall:Boolean, onChecked: (Boolean) -> Unit) {
+    when (val result = securityChecker.appSignatureCompare()) {
         is SecurityChecker.SecurityCheck.Warning -> {
             SecurityConfigManager.getSecurityChecker().showSecurityDialog(AppActivity.context, result.message, false) { userAcknowledged ->
                 if (userAcknowledged) {

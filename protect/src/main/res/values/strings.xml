@@ -11,11 +11,15 @@
     <string name="developer_options_warning">Developer options are enabled on this device, which may pose security risks</string>
     <string name="mock_location_warning">Mock location is enabled, which may affect the accuracy of location data.</string>
     <string name="usb_debugging_warning">USB debugging is enabled, which may pose security risks.</string>
-    <string name="app_spoofing_warniong">Application spoofing has been detected, which may compromise security.</string>
-    <string name="accecibility_warniong">Accessibility Service is enabled for this app.</string>
-    <string name="accecibility_not_warniong">Accessibility Service is not enabled for this app.</string>
-    <string name="screen_sharing_warniong">Screen sharing is active, which may pose a security risk.</string>
-    <string name="screen_mirroring_warniong">Screen mirroring is active, which may pose a security risk.</string>
-    <string name="screen_recording_warniong">Screen recording is active, which may pose a security risk.</string>
+    <string name="app_spoofing_warning">Application spoofing has been detected, which may compromise security.</string>
+    <string name="accessibility_warning">Accessibility Service is enabled for this app.</string>
+    <string name="accessibility_not_warning">Accessibility Service is not enabled for this app.</string>
+    <string name="screen_sharing_warning">Screen sharing is active, which may pose a security risk.</string>
+    <string name="screen_mirroring_warning">Screen mirroring is active, which may pose a security risk.</string>
+    <string name="screen_recording_warning">Screen recording is active, which may pose a security risk.</string>
+    <string name="app_signature_warning">App verification failed! The app signature does not match the expected credentials. This may indicate unauthorized changes or tampering.</string>
+    <string name="app_signature_critical">App signature invalid! Potential tampering or unauthorized modification detected. The app cannot proceed and will now terminate.</string>
+ <string name="in_call_warning">Voice call is active on your device. This may pose a security risk.</string>
+    <string name="in_call_critical">Voice call is active on your device. This poses a significant security risk and must be disabled to proceed.</string>
 
 </resources>

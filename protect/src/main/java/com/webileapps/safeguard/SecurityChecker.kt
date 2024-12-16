@@ -1,24 +1,18 @@
 package com.webileapps.safeguard
 
 import android.content.Context
-import android.content.Intent
 import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.Build
 import android.provider.Settings
-import android.app.ActivityManager
 import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.content.pm.Signature
 import android.media.projection.MediaProjectionManager
-import android.os.PowerManager
 import android.util.Log
-import com.kfintech.protect.R
+import androidx.annotation.RequiresApi
 import com.webileapps.safeguard.NetworkUtils.isProxySet
 import com.webileapps.safeguard.NetworkUtils.isVPNActive
 import com.webileapps.safeguard.NetworkUtils.isWifiSecure
-import com.scottyab.rootbeer.RootBeer
-import java.security.MessageDigest
 import java.util.function.Consumer
 import kotlin.system.exitProcess
 
@@ -102,7 +96,10 @@ class SecurityChecker(private val context: Context, private val config: Security
         val screenSharingCheck: SecurityCheckState = SecurityCheckState.WARNING,
         val appSpoofingCheck: SecurityCheckState = SecurityCheckState.WARNING,
         val keyloggerCheck: SecurityCheckState = SecurityCheckState.WARNING,
-        val expectedPackageName: String? = null
+        val appSignature: SecurityCheckState = SecurityCheckState.WARNING,
+        val callActive: SecurityCheckState = SecurityCheckState.WARNING,
+        val expectedPackageName: String = "",
+        val expectedSignature: String = ""
     )
 
     @JvmField
@@ -219,6 +216,29 @@ class SecurityChecker(private val context: Context, private val config: Security
         }
     }
 
+    fun appSignatureCompare(): SecurityCheck {
+        if(!SignatureComparison().isAppSignatureValid(context, config.expectedSignature)) {
+            return when (config.appSignature) {
+                SecurityCheckState.WARNING -> SecurityCheck.Warning(context.getString(R.string.app_signature_warning))
+                SecurityCheckState.ERROR -> SecurityCheck.Critical(context.getString(R.string.app_signature_critical))
+                SecurityCheckState.DISABLED -> SecurityCheck.Success
+            }
+        }
+        return  SecurityCheck.Success
+    }
+
+    fun checkInVoiceCall(isCallActive:Boolean): SecurityCheck {
+        if(isCallActive) {
+            return when (config.callActive) {
+                SecurityCheckState.WARNING -> SecurityCheck.Warning(context.getString(R.string.in_call_warning))
+                SecurityCheckState.ERROR -> SecurityCheck.Critical(context.getString(R.string.in_call_critical))
+                SecurityCheckState.DISABLED -> SecurityCheck.Success
+            }
+        }
+        return  SecurityCheck.Success
+    }
+
+
     // Check for malware and tampering
     fun checkMalwareAndTampering(): SecurityCheck {
         if (config.malwareCheck == SecurityCheckState.DISABLED && 
@@ -272,9 +292,9 @@ class SecurityChecker(private val context: Context, private val config: Security
         }
 
         val message = when {
-            ScreenSharingDetector.isScreenSharingActive(context) -> context.getString(R.string.screen_sharing_warniong)
-            ScreenSharingDetector.isScreenMirrored(context) -> context.getString(R.string.screen_mirroring_warniong)
-            isScreenRecording() -> context.getString(R.string.screen_recording_warniong)
+            ScreenSharingDetector.isScreenSharingActive(context) -> context.getString(R.string.screen_sharing_warning)
+            ScreenSharingDetector.isScreenMirrored(context) -> context.getString(R.string.screen_mirroring_warning)
+            isScreenRecording() -> context.getString(R.string.screen_recording_warning)
             else -> return SecurityCheck.Success
         }
 
@@ -296,8 +316,8 @@ class SecurityChecker(private val context: Context, private val config: Security
         if (expectedPackage != calculatedPackageName) {
             Log.e("Security", "Application spoofing detected. Expected: $expectedPackage, Found: $calculatedPackageName")
             return when (config.appSpoofingCheck) {
-                SecurityCheckState.WARNING -> SecurityCheck.Warning(context.getString(R.string.app_spoofing_warniong))
-                SecurityCheckState.ERROR -> SecurityCheck.Critical(context.getString(R.string.app_spoofing_warniong))
+                SecurityCheckState.WARNING -> SecurityCheck.Warning(context.getString(R.string.app_spoofing_warning))
+                SecurityCheckState.ERROR -> SecurityCheck.Critical(context.getString(R.string.app_spoofing_warning))
                 SecurityCheckState.DISABLED -> SecurityCheck.Success
             }
         }
@@ -312,8 +332,8 @@ class SecurityChecker(private val context: Context, private val config: Security
 
         if (KeyloggerDetection.isAccessibilityServiceEnabled(context)) {
             return when (config.keyloggerCheck) {
-                SecurityCheckState.WARNING -> SecurityCheck.Warning(context.getString(R.string.accecibility_warniong))
-                SecurityCheckState.ERROR -> SecurityCheck.Critical(context.getString(R.string.accecibility_warniong))
+                SecurityCheckState.WARNING -> SecurityCheck.Warning(context.getString(R.string.accessibility_warning))
+                SecurityCheckState.ERROR -> SecurityCheck.Critical(context.getString(R.string.accessibility_warning))
                 SecurityCheckState.DISABLED -> SecurityCheck.Success
             }
         }

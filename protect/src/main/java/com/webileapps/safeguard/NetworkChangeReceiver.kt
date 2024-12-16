@@ -14,19 +14,27 @@ import com.webileapps.safeguard.NetworkUtils.isWifiSecure
  */
 class NetworkChangeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+
+
         // Check network status
         if (isNetworkConnected(context)) {
-            if (isVPNActive(context)) {
-                // Handle VPN detection
-                Log.d("NetworkChangeReceiver", "VPN is active")
+
+           if (isVPNActive(context)) {
+               SecurityConfigManager.getSecurityChecker().showSecurityDialog(AppActivity.context, context.getString(R.string.vpn_warning), false) {
+
+               }
             }
-            if (isProxySet(context)) {
+            else if (isProxySet(context)) {
                 // Handle proxy detection
-                Log.d("NetworkChangeReceiver", "Proxy is enabled")
+               SecurityConfigManager.getSecurityChecker().showSecurityDialog(AppActivity.context, context.getString(R.string.proxy_warning), false) {
+
+               }
             }
-            if (!isWifiSecure(context)) {
+           else if (!isWifiSecure(context)) {
                 // Handle unsecured Wi-Fi detection
-                Log.d("NetworkChangeReceiver", "Connected to an unsecured Wi-Fi")
+               SecurityConfigManager.getSecurityChecker().showSecurityDialog(AppActivity.context, context.getString(R.string.usecured_network_warning), false) {
+
+               }
             }
         } else {
             Log.d("NetworkChangeReceiver", "No network connection")

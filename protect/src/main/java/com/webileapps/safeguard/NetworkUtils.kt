@@ -18,26 +18,20 @@ object NetworkUtils {
     fun isVPNActive(context: Context): Boolean {
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val activeNetwork = connectivityManager.activeNetwork
-            val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
-            return capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true
-        }
-        return false
+        val activeNetwork = connectivityManager.activeNetwork
+        val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+        return capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true
+
     }
 
     // Check if a proxy is set
     @JvmStatic
     fun isProxySet(context: Context): Boolean {
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                val connectivityManager =
-                    context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-                val proxyInfo: ProxyInfo? = connectivityManager.defaultProxy
-                proxyInfo?.host != null
-            } else {
-                System.getProperty("http.proxyHost")?.isNotEmpty() == true
-            }
+            val connectivityManager =
+                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val proxyInfo: ProxyInfo? = connectivityManager.defaultProxy
+            proxyInfo?.host != null
         } catch (e: Exception) {
             Log.e(TAG, "Error checking proxy: ${e.message}")
             false

@@ -41,7 +41,8 @@ class MainActivity : AppActivity() {
                 networkSecurityCheck = SecurityChecker.SecurityCheckState.WARNING,
                 screenSharingCheck = SecurityChecker.SecurityCheckState.WARNING,
                 keyloggerCheck = SecurityChecker.SecurityCheckState.WARNING,
-                expectedPackageName = "com.webileapps.protect.sample"
+                expectedPackageName = "com.webileapps.protect.sample",
+                expectedSignature = ""
             )
         )
 

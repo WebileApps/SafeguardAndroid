@@ -1,16 +1,21 @@
 package com.webileapps.safeguard
 
-import ScreenSharingDetector
+
 import android.content.Context
+import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.provider.Settings
+import android.net.ConnectivityManager
+import android.telephony.PhoneStateListener
+import android.telephony.TelephonyManager
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 
 
 class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObserver {
+
+        private var networkChangeReceiver: NetworkChangeReceiver? = null
+    lateinit var securityChecker: SecurityChecker
 
     var status = false
 
@@ -18,12 +23,24 @@ class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObser
         Log.e("APP>>>", "App is in Foreground")
 
         // Perform security checks in sequence
+
         performSecurityChecks()
+        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE)
+        networkMonitor = NetworkMonitor(context)
+        networkMonitor.startMonitoring {
+            SecurityConfigManager.getSecurityChecker().showSecurityDialog(AppActivity.context, context.getString(R.string.screen_sharing_warning), false) {
+
+            }
+        }
+
     }
 
     private fun performSecurityChecks() {
-        val securityChecker: SecurityChecker = SecurityConfigManager.getSecurityChecker()
-        // Root check
+         securityChecker = SecurityConfigManager.getSecurityChecker()
+
+
+
+            // Root check
         context.checkRoot(securityChecker) { rootCheckPassed ->
             if (!rootCheckPassed) return@checkRoot
 
@@ -31,40 +48,57 @@ class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObser
             context.checkDeveloperOptions(securityChecker) { devOptionsCheckPassed ->
                 if (!devOptionsCheckPassed) return@checkDeveloperOptions
 
-                // Malware check
-                context.checkMalware(securityChecker) { malwareCheckPassed ->
-                    if (!malwareCheckPassed) return@checkMalware
+                context.appSignatureCheck(securityChecker){ isAppSignatureValid ->
+                    if(!isAppSignatureValid) return@appSignatureCheck
 
-                    // Screen mirroring check
-                    context.checkScreenMirroring(securityChecker) { mirroringCheckPassed ->
-                        if (!mirroringCheckPassed) return@checkScreenMirroring
+                    context.checkMalware(securityChecker) { malwareCheckPassed ->
+                        if (!malwareCheckPassed) return@checkMalware
 
-                        // Application spoofing check
-                        context.checkApplicationSpoofing(securityChecker) { spoofingCheckPassed ->
-                            if (!spoofingCheckPassed) return@checkApplicationSpoofing
+                        // Screen mirroring check
+                        context.checkScreenMirroring(securityChecker) { mirroringCheckPassed ->
+                            if (!mirroringCheckPassed) return@checkScreenMirroring
 
-                            // Keylogger check
-                            context.checkKeyLoggerDetection(securityChecker) { keyloggerCheckPassed ->
-                                if (!keyloggerCheckPassed) return@checkKeyLoggerDetection
+                            // Application spoofing check
+                            context.checkApplicationSpoofing(securityChecker) { spoofingCheckPassed ->
+                                if (!spoofingCheckPassed) return@checkApplicationSpoofing
 
-                                // Network security check
-                                context.checkNetwork(securityChecker) { networkCheckPassed ->
-                                    if (!networkCheckPassed) return@checkNetwork
+                                // Keylogger check
+                                context.checkKeyLoggerDetection(securityChecker) { keyloggerCheckPassed ->
+                                    if (!keyloggerCheckPassed) return@checkKeyLoggerDetection
 
-                                    // All security checks passed
-                                    Log.d("Security", "All security checks completed")
+                                    val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+                                    context.registerReceiver(networkChangeReceiver, filter)  /* // Network security check
+                                    context.checkNetwork(securityChecker) { networkCheckPassed ->
+                                        if (!networkCheckPassed) return@checkNetwork
+
+                                        // All security checks passed
+                                        Log.d("Security", "All security checks completed")
+                                    }*/
                                 }
                             }
                         }
                     }
                 }
+                // Malware check
+
             }
         }
     }
 
     override fun onStop(owner: LifecycleOwner) {
         Log.e("APP>>>", "App is in Background")
-        networkMonitor.stopMonitoring()
+        try {
+            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE)
+        }catch (e: Exception){
+
+        }
+
+         networkMonitor.stopMonitoring()
+        try {
+            context.unregisterReceiver(networkChangeReceiver)
+        } catch (e: IllegalArgumentException) {
+            Log.e("TAG", "Error while unregistering receiver: ${e.message}")
+        }
     }
 
     companion object {
@@ -83,4 +117,26 @@ class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObser
             }
         }
     }
+
+    private val telephonyManager: TelephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+    private val phoneStateListener = object : PhoneStateListener() {
+        override fun onCallStateChanged(state: Int, incomingNumber: String?) {
+            super.onCallStateChanged(state, incomingNumber)
+
+            when (state) {
+                TelephonyManager.CALL_STATE_IDLE -> {
+
+                }
+                TelephonyManager.CALL_STATE_RINGING -> {
+
+                }
+                TelephonyManager.CALL_STATE_OFFHOOK -> {
+                    context.checkInvoiceCall(SecurityConfigManager.getSecurityChecker(),true){
+
+                    }
+                }
+            }
+        }
+    }
+
 }

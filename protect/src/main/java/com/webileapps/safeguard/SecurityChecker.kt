@@ -13,6 +13,7 @@ import android.content.pm.Signature
 import android.media.projection.MediaProjectionManager
 import android.os.PowerManager
 import android.util.Log
+import com.kfintech.protect.R
 import com.webileapps.safeguard.NetworkUtils.isProxySet
 import com.webileapps.safeguard.NetworkUtils.isVPNActive
 import com.webileapps.safeguard.NetworkUtils.isWifiSecure
@@ -130,7 +131,7 @@ class SecurityChecker(private val context: Context, private val config: Security
             return SecurityCheck.Success
         }
         
-        val rootBeer = RootUtil.isDeviceRooted
+        val rootBeer = RootUtil(context).isDeviceRooted
         return if (rootBeer) {
             if (config.rootCheck == SecurityCheckState.WARNING) {
                 SecurityCheck.Warning(context.getString(R.string.rooted_warning))

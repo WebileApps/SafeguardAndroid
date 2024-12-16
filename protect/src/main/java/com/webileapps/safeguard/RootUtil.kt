@@ -1,5 +1,8 @@
 package com.webileapps.safeguard
 
+import android.content.Context
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import java.io.BufferedReader
@@ -7,11 +10,11 @@ import java.io.File
 import java.io.InputStreamReader
 
 
-object RootUtil {
+class RootUtil(val context : Context) {
     val isDeviceRooted: Boolean
         get() =/* 1 TODO: REs shall explore the feasibility of implementing a code that checks if the device is rooted/ jailbroken prior to the installation of the mobile application and disallow the mobile application to install/ function if the phone is rooted/ jailbroken*/
 
-            isRunningOnEmulator || checkRootMethod1() || checkRootMethod2() || checkRootMethod3() || checkRootMethod4() || checkRootMethod5() || checkRootMethod6()
+            isRunningOnEmulator || checkRootMethod1() || checkRootMethod2() || checkRootMethod3() || checkRootMethod4() || checkRootMethod5() || checkRootMethod6() || rootClockingCheck()
 
     private fun checkRootMethod1(): Boolean {
         val buildTags = Build.TAGS
@@ -121,5 +124,44 @@ object RootUtil {
             }
         }
         return false
+    }
+
+    fun  rootClockingCheck():Boolean{
+
+        val packeges = arrayOf(
+               "com.devadvance.rootcloak",
+               "com.devadvance.rootcloakplus",
+                "de.robv.android.xposed.installer",
+                "com.saurik.substrate",
+                "com.zachspong.temprootremovejb",
+                "com.amphoras.hidemyroot",
+                "com.amphoras.hidemyrootadfree",
+                "com.formyhm.hiderootPremium",
+                "com.formyhm.hideroot")
+
+        val list = getAllInstalledApps()
+
+        for(item in list){
+            if(packeges.contains(item)){
+                return true
+            }
+        }
+
+        return false
+
+    }
+
+    private fun getAllInstalledApps(): List<String> {
+        val packageManager: PackageManager = context.getPackageManager()
+        val installedPackages = packageManager.getInstalledPackages(0)
+        val packageNames: MutableList<String> = ArrayList()
+
+        for (packageInfo in installedPackages) {
+            if ((packageInfo.applicationInfo!!.flags and ApplicationInfo.FLAG_SYSTEM) == 0) {
+                packageNames.add(packageInfo.packageName)
+            }
+        }
+
+        return packageNames
     }
 }

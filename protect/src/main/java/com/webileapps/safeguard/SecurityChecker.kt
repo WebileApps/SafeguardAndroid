@@ -606,11 +606,11 @@ class SecurityChecker(private val context: Context, private val config: Security
     private fun showDialog(result: SecurityCheck){
         when (result) {
             is SecurityChecker.SecurityCheck.Critical -> {
-                SecurityConfigManager.getSecurityChecker().showSecurityDialog(AppActivity.context, result.message, isCritical = true)
+                SecurityConfigManager.getSecurityChecker().showSecurityDialog(context, result.message, isCritical = true)
 
             }
             is SecurityChecker.SecurityCheck.Warning -> {
-                SecurityConfigManager.getSecurityChecker().showSecurityDialog(AppActivity.context, result.message, isCritical = false) { userAcknowledged ->
+                SecurityConfigManager.getSecurityChecker().showSecurityDialog(context, result.message, isCritical = false) { userAcknowledged ->
 
                 }
             }

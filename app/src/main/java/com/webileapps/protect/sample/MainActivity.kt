@@ -104,36 +104,5 @@ class MainActivity : AppActivity() {
         Log.d("SecurityCheck", "$checkName check $result")
     }
 
-    private fun performInitialSecurityChecks() {
-        // Perform all security checks in sequence
-        this.checkRoot(securityChecker) { rootSuccess ->
-            if (!rootSuccess) return@checkRoot
-            
-            this.checkDeveloperOptions(securityChecker) { devSuccess ->
-                if (!devSuccess) return@checkDeveloperOptions
-                
-                this.checkMalware(securityChecker) { malwareSuccess ->
-                    if (!malwareSuccess) return@checkMalware
-                    
-                    this.checkScreenMirroring(securityChecker) { mirrorSuccess ->
-                        if (!mirrorSuccess) return@checkScreenMirroring
-                        
-                        this.checkApplicationSpoofing(securityChecker) { spoofSuccess ->
-                            if (!spoofSuccess) return@checkApplicationSpoofing
-                            
-                            this.checkKeyLoggerDetection(securityChecker) { keyloggerSuccess ->
-                                if (!keyloggerSuccess) return@checkKeyLoggerDetection
-                                
-                                this.checkNetwork(securityChecker) { networkSuccess ->
-                                    if (!networkSuccess) return@checkNetwork
-                                    
-                                    Log.d("SecurityCheck", "All initial security checks completed successfully")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+
 }

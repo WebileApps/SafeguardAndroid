@@ -594,7 +594,6 @@ class SecurityChecker(private val context: Context, private val config: Security
                 "Root Access Detected",
                 rootCheck is SecurityCheck.Critical
             )
-            return
         }
 
         // Check developer options
@@ -605,7 +604,6 @@ class SecurityChecker(private val context: Context, private val config: Security
                 "Developer Options Enabled",
                 devCheck is SecurityCheck.Critical
             )
-            return
         }
 
         // Check malware
@@ -616,7 +614,6 @@ class SecurityChecker(private val context: Context, private val config: Security
                 "Malware Detected",
                 malwareCheck is SecurityCheck.Critical
             )
-            return
         }
 
         // Check network security
@@ -627,7 +624,6 @@ class SecurityChecker(private val context: Context, private val config: Security
                 "Network Security Issue",
                 networkCheck is SecurityCheck.Critical
             )
-            return
         }
 
         // Check screen mirroring
@@ -638,7 +634,6 @@ class SecurityChecker(private val context: Context, private val config: Security
                 "Screen Mirroring Detected",
                 screenCheck is SecurityCheck.Critical
             )
-            return
         }
 
         // Check app spoofing
@@ -649,7 +644,6 @@ class SecurityChecker(private val context: Context, private val config: Security
                 "App Spoofing Detected",
                 spoofingCheck is SecurityCheck.Critical
             )
-            return
         }
 
         // Check keylogger
@@ -660,8 +654,17 @@ class SecurityChecker(private val context: Context, private val config: Security
                 "Keylogger Detected",
                 keyloggerCheck is SecurityCheck.Critical
             )
-            return
         }
+
+        val result = appSignatureCompare()
+        if (result !is SecurityCheck.Success) {
+            showSecurityDialog(
+                context,
+                "App Signature Detected",
+                keyloggerCheck is SecurityCheck.Critical
+            )
+        }
+
     }
 
     fun cleanup() {

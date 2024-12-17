@@ -481,25 +481,6 @@ class SecurityChecker(private val context: Context, private val config: Security
         }
 
         try {
-            val packageInfo = context.packageManager.getPackageInfo(
-                context.packageName,
-                PackageManager.GET_SIGNATURES
-            )
-            
-            val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                packageInfo.signingInfo?.apkContentsSigners
-            } else {
-                @Suppress("DEPRECATION")
-                packageInfo.signatures
-            }
-
-            if (!verifySignature(signatures!!)) {
-                return when (config.tamperingCheck) {
-                    SecurityCheckState.WARNING -> SecurityCheck.Warning("Application signature verification failed. This may indicate tampering.")
-                    SecurityCheckState.ERROR -> SecurityCheck.Critical("Application signature is not as expected. Please reinstall from official source.")
-                    SecurityCheckState.DISABLED -> SecurityCheck.Success
-                }
-            }
 
             if (Settings.canDrawOverlays(context)) {
                 return when (config.malwareCheck) {

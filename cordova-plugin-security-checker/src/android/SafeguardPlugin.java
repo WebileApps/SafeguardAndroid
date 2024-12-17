@@ -219,4 +219,12 @@ public class SafeguardPlugin extends CordovaPlugin {
             }
         });
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (securityChecker != null) {
+            securityChecker.cleanup();
+        }
+    }
 }

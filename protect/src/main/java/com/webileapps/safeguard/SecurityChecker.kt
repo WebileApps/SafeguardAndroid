@@ -8,6 +8,10 @@ import android.content.pm.PackageManager
 import android.content.pm.Signature
 import android.media.projection.MediaProjectionManager
 import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.net.LinkProperties
 import android.os.Build
 import android.provider.Settings
 import android.telephony.PhoneStateListener
@@ -43,6 +47,8 @@ class SecurityChecker(private val context: Context, private val config: Security
     private var telephonyManager: TelephonyManager? = null
     private var phoneStateListener: PhoneStateListener? = null
     private var telephonyCallback: TelephonyCallback? = null
+    private var connectivityManager: ConnectivityManager? = null
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1001
@@ -61,6 +67,9 @@ class SecurityChecker(private val context: Context, private val config: Security
     init {
         if (config.ongoingCallCheck != SecurityCheckState.DISABLED) {
             initializeCallMonitoring()
+        }
+        if (config.networkSecurityCheck != SecurityCheckState.DISABLED) {
+            initializeNetworkMonitoring()
         }
     }
 
@@ -246,6 +255,80 @@ class SecurityChecker(private val context: Context, private val config: Security
         dialogQueue.add(SecurityDialogInfo(message, isCritical, onResponse?.let { consumer -> { value -> consumer.accept(value) } }))
         if (!isShowingDialog) {
             showNextDialog(context)
+        }
+    }
+
+    private fun initializeNetworkMonitoring() {
+        Log.d("SecurityChecker", "Initializing network monitoring")
+        connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        
+        networkCallback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                Log.d("SecurityChecker", "Network became available: $network")
+                handleNetworkChange()
+            }
+
+            override fun onLost(network: Network) {
+                Log.d("SecurityChecker", "Network was lost: $network")
+                handleNetworkChange()
+            }
+
+            override fun onCapabilitiesChanged(
+                network: Network,
+                networkCapabilities: NetworkCapabilities
+            ) {
+                Log.d("SecurityChecker", "Network capabilities changed: ${networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)}")
+                handleNetworkChange()
+            }
+
+            override fun onLinkPropertiesChanged(
+                network: Network,
+                linkProperties: LinkProperties
+            ) {
+                Log.d("SecurityChecker", "Network properties changed: ${linkProperties.httpProxy}")
+                handleNetworkChange()
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            Log.d("SecurityChecker", "Registering default network callback")
+            connectivityManager?.registerDefaultNetworkCallback(networkCallback!!)
+        } else {
+            Log.d("SecurityChecker", "Registering network callback with builder")
+            val builder = NetworkRequest.Builder()
+            connectivityManager?.registerNetworkCallback(builder.build(), networkCallback!!)
+        }
+    }
+
+    private fun handleNetworkChange() {
+        if (config.networkSecurityCheck == SecurityCheckState.DISABLED) {
+            Log.d("SecurityChecker", "Network security check is disabled")
+            return
+        }
+
+        val networkCheck = checkNetworkSecurity()
+        Log.d("SecurityChecker", "Network security check result: $networkCheck")
+        
+        if (networkCheck !is SecurityCheck.Success) {
+            when (networkCheck) {
+                is SecurityCheck.Warning -> {
+                    Log.d("SecurityChecker", "Network security warning: ${networkCheck.message}")
+                    showSecurityDialog(
+                        context,
+                        networkCheck.message,
+                        false
+                    )
+                }
+                is SecurityCheck.Critical -> {
+                    Log.d("SecurityChecker", "Network security critical: ${networkCheck.message}")
+                    showSecurityDialog(
+                        context,
+                        networkCheck.message,
+                        true
+                    )
+                }
+                else -> { /* Do nothing for Success */ }
+            }
         }
     }
 
@@ -592,10 +675,15 @@ class SecurityChecker(private val context: Context, private val config: Security
                 telephonyManager?.listen(listener, PhoneStateListener.LISTEN_NONE)
             }
         }
+        
+        networkCallback?.let { callback ->
+            connectivityManager?.unregisterNetworkCallback(callback)
+        }
+
         telephonyCallback = null
         phoneStateListener = null
         telephonyManager = null
-        activity = null
-        permissionGrantedCallback = null
+        networkCallback = null
+        connectivityManager = null
     }
 }

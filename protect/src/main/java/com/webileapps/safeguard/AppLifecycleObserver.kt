@@ -12,24 +12,13 @@ import androidx.lifecycle.LifecycleOwner
 
 class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObserver {
 
-        private var networkChangeReceiver: NetworkChangeReceiver? = null
     lateinit var securityChecker: SecurityChecker
-
-    var status = false
 
     override fun onStart(owner: LifecycleOwner) {
         Log.e("APP>>>", "App is in Foreground")
 
         // Perform security checks in sequence
-
         performSecurityChecks()
-        networkMonitor = NetworkMonitor(context)
-        networkMonitor.startMonitoring {
-            SecurityConfigManager.getSecurityChecker().showSecurityDialog(AppActivity.context, context.getString(R.string.screen_sharing_warning), false) {
-
-            }
-        }
-
     }
 
     private fun performSecurityChecks() {
@@ -39,17 +28,7 @@ class AppLifecycleObserver(private val context: Context) : DefaultLifecycleObser
 
     override fun onStop(owner: LifecycleOwner) {
         Log.e("APP>>>", "App is in Background")
-
-         networkMonitor.stopMonitoring()
-        try {
-            context.unregisterReceiver(networkChangeReceiver)
-        } catch (e: IllegalArgumentException) {
-            Log.e("TAG", "Error while unregistering receiver: ${e.message}")
-        }
-    }
-
-    companion object {
-        private lateinit var networkMonitor: NetworkMonitor
+        securityChecker.cleanup()
     }
 
     private fun detectOverlayApps(context: Context) {

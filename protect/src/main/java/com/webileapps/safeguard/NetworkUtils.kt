@@ -38,35 +38,32 @@ object NetworkUtils {
         }
     }
 
-    // Check if Wi-Fi is secure
     @JvmStatic
     fun isWifiSecure(context: Context): Boolean {
         val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // For Android Q (API 29) and above
                 val connectivityManager =
                     context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 val activeNetwork = connectivityManager.activeNetwork
                 val capabilities =
                     connectivityManager.getNetworkCapabilities(activeNetwork)
+
+
                 if (capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) {
+                    // Connected to Wi-Fi, now check Wi-Fi security
                     val wifiInfo = wifiManager.connectionInfo
-                    val networkId = wifiInfo.networkId
                     val ssid = wifiInfo.ssid
 
-                    Log.d(TAG, "Connected to Wi-Fi SSID: $ssid, Network ID: $networkId")
+                    Log.d(TAG, "Connected to Wi-Fi SSID: $ssid")
 
-                    // No direct API to check security; assume WPA/WPA2/3 if connected successfully
-                    return true
-                }
-            } else {
-                val wifiInfo: WifiInfo = wifiManager.connectionInfo
-                val ssid = wifiInfo.ssid
-                Log.d(TAG, "Connected to Wi-Fi SSID (Pre-Q): $ssid")
+                    // Since we cannot directly fetch Wi-Fi security type in Q+, assume secure if connected
+                    return !ssid.isNullOrEmpty()
+                }else if(capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true) {
+                 return true
+                    }
 
-                // No explicit security check available for pre-Q devices
-                return wifiInfo.ssid != null
-            }
+            // Return false if no valid Wi-Fi is detected
             false
         } catch (e: Exception) {
             Log.e(TAG, "Error checking Wi-Fi security: ${e.message}")

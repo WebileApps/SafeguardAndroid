@@ -569,85 +569,56 @@ class SecurityChecker(private val context: Context, private val config: Security
     fun runSecurityChecks() {
         // Check root status
         val rootCheck = checkRootStatus()
-        if (rootCheck !is SecurityCheck.Success) {
-            showSecurityDialog(
-                context,
-                "Root Access Detected",
-                rootCheck is SecurityCheck.Critical
-            )
-        }
+        showDialog(rootCheck)
 
         // Check developer options
         val devCheck = checkDeveloperOptions()
-        if (devCheck !is SecurityCheck.Success) {
-            showSecurityDialog(
-                context,
-                "Developer Options Enabled",
-                devCheck is SecurityCheck.Critical
-            )
-        }
+        showDialog(devCheck)
+
+
 
         // Check malware
         val malwareCheck = checkMalwareAndTampering()
-        if (malwareCheck !is SecurityCheck.Success) {
-            showSecurityDialog(
-                context,
-                "Malware Detected",
-                malwareCheck is SecurityCheck.Critical
-            )
-        }
+        showDialog(malwareCheck)
+
 
         // Check network security
         val networkCheck = checkNetworkSecurity()
-        if (networkCheck !is SecurityCheck.Success) {
-            showSecurityDialog(
-                context,
-                "Network Security Issue",
-                networkCheck is SecurityCheck.Critical
-            )
-        }
+        showDialog(networkCheck)
 
         // Check screen mirroring
         val screenCheck = checkScreenMirroring()
-        if (screenCheck !is SecurityCheck.Success) {
-            showSecurityDialog(
-                context,
-                "Screen Mirroring Detected",
-                screenCheck is SecurityCheck.Critical
-            )
-        }
+       showDialog(screenCheck)
 
         // Check app spoofing
         val spoofingCheck = checkAppSpoofing()
-        if (spoofingCheck !is SecurityCheck.Success) {
-            showSecurityDialog(
-                context,
-                "App Spoofing Detected",
-                spoofingCheck is SecurityCheck.Critical
-            )
-        }
+       showDialog(spoofingCheck)
 
         // Check keylogger
         val keyloggerCheck = checkKeyLoggerDetection()
-        if (keyloggerCheck !is SecurityCheck.Success) {
-            showSecurityDialog(
-                context,
-                "Keylogger Detected",
-                keyloggerCheck is SecurityCheck.Critical
-            )
-        }
+       showDialog(keyloggerCheck)
 
         val result = appSignatureCompare()
-        if (result !is SecurityCheck.Success) {
-            showSecurityDialog(
-                context,
-                "App Signature Detected",
-                keyloggerCheck is SecurityCheck.Critical
-            )
-        }
+        showDialog(result)
 
     }
 
+    private fun showDialog(result: SecurityCheck){
+        when (result) {
+            is SecurityChecker.SecurityCheck.Critical -> {
+                SecurityConfigManager.getSecurityChecker().showSecurityDialog(AppActivity.context, result.message, isCritical = true)
+
+            }
+            is SecurityChecker.SecurityCheck.Warning -> {
+                SecurityConfigManager.getSecurityChecker().showSecurityDialog(AppActivity.context, result.message, isCritical = false) { userAcknowledged ->
+
+                }
+            }
+            else -> {
+
+            }
+        }
+    }
     fun cleanup() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             telephonyCallback?.let { callback ->

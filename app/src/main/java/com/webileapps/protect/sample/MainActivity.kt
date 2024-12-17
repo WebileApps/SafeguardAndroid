@@ -67,7 +67,7 @@ class MainActivity : AppActivity() {
                 logCheckResult("Root", success)
             }
         }
-        binding.btnCheckDeveloper.setOnClickListener { 
+        binding.btnCheckDeveloper.setOnClickListener {
             this.checkDeveloperOptions(securityChecker) { success ->
                 logCheckResult("Developer Options", success)
             }

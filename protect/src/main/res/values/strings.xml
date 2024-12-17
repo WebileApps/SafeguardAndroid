@@ -19,7 +19,9 @@
     <string name="screen_recording_warning">Screen recording is active, which may pose a security risk.</string>
     <string name="app_signature_warning">App verification failed! The app signature does not match the expected credentials. This may indicate unauthorized changes or tampering.</string>
     <string name="app_signature_critical">App signature invalid! Potential tampering or unauthorized modification detected. The app cannot proceed and will now terminate.</string>
- <string name="in_call_warning">Voice call is active on your device. This may pose a security risk.</string>
+    <string name="in_call_warning">Voice call is active on your device. This may pose a security risk.</string>
     <string name="in_call_critical">Voice call is active on your device. This poses a significant security risk and must be disabled to proceed.</string>
+    <string name="ongoing_call_warning">An ongoing call is detected. This may pose security risks.</string>
+    <string name="ongoing_call_critical">An ongoing call is detected. Please end the call to continue using the application.</string>
 
 </resources>

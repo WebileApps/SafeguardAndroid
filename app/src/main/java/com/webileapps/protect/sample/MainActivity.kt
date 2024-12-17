@@ -41,6 +41,7 @@ class MainActivity : AppActivity() {
                 networkSecurityCheck = SecurityChecker.SecurityCheckState.WARNING,
                 screenSharingCheck = SecurityChecker.SecurityCheckState.WARNING,
                 keyloggerCheck = SecurityChecker.SecurityCheckState.WARNING,
+                ongoingCallCheck = SecurityChecker.SecurityCheckState.WARNING,
                 expectedPackageName = "com.webileapps.protect.sample",
                 expectedSignature = ""
             )
@@ -52,7 +53,10 @@ class MainActivity : AppActivity() {
         networkChangeReceiver = NetworkChangeReceiver()
         val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
         registerReceiver(networkChangeReceiver, filter)
-        
+
+        securityChecker.setupCallMonitoring(activity= this, onPermissionDenied = {
+        })
+
         setupButtons()
     }
 

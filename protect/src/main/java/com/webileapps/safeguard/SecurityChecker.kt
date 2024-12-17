@@ -1,15 +1,22 @@
 package com.webileapps.safeguard
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.os.Build
-import android.provider.Settings
+import ScreenSharingDetector
+import android.Manifest
 import android.app.AlertDialog
+import android.content.Context
 import android.content.pm.PackageManager
 import android.content.pm.Signature
 import android.media.projection.MediaProjectionManager
+import android.net.ConnectivityManager
+import android.os.Build
+import android.provider.Settings
+import android.telephony.PhoneStateListener
+import android.telephony.TelephonyCallback
+import android.telephony.TelephonyManager
 import android.util.Log
-import androidx.annotation.RequiresApi
+import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import com.webileapps.safeguard.NetworkUtils.isProxySet
 import com.webileapps.safeguard.NetworkUtils.isVPNActive
 import com.webileapps.safeguard.NetworkUtils.isWifiSecure
@@ -32,6 +39,162 @@ class SecurityChecker(private val context: Context, private val config: Security
 
     private val dialogQueue = mutableListOf<SecurityDialogInfo>()
     private var isShowingDialog = false
+
+    private var telephonyManager: TelephonyManager? = null
+    private var phoneStateListener: PhoneStateListener? = null
+    private var telephonyCallback: TelephonyCallback? = null
+
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 1001
+    }
+
+    private var activity: ComponentActivity? = null
+    private var permissionGrantedCallback: (() -> Unit)? = null
+    private val permissionLauncher = activity?.registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            permissionGrantedCallback?.invoke()
+        }
+    }
+
+    init {
+        if (config.ongoingCallCheck != SecurityCheckState.DISABLED) {
+            initializeCallMonitoring()
+        }
+    }
+
+    /**
+     * Sets up call monitoring with runtime permission handling.
+     * This should be called from an Activity context when the app starts or resumes.
+     * 
+     * @param activity The activity to use for permission requests
+     * @param onPermissionDenied Optional callback for when permission is denied
+     */
+    fun setupCallMonitoring(
+        activity: ComponentActivity,
+        onPermissionDenied: (() -> Unit)? = null
+    ) {
+        if (config.ongoingCallCheck == SecurityCheckState.DISABLED) {
+            return
+        }
+
+        val currentPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
+        if (currentPermission != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (activity.shouldShowRequestPermissionRationale(Manifest.permission.READ_PHONE_STATE)) {
+                    // Show rationale dialog
+                    AlertDialog.Builder(activity)
+                        .setTitle("Permission Required")
+                        .setMessage("The app needs phone state permission to monitor calls for security purposes.")
+                        .setPositiveButton("Grant") { _, _ ->
+                            requestPermission(activity) {
+                                initializeCallMonitoring()
+                            }
+                        }
+                        .setNegativeButton("Deny") { dialog, _ ->
+                            dialog.dismiss()
+                            onPermissionDenied?.invoke()
+                        }
+                        .show()
+                } else {
+                    requestPermission(activity) {
+                        initializeCallMonitoring()
+                    }
+                }
+            }
+            return
+        }
+
+        initializeCallMonitoring()
+    }
+
+    private fun requestPermission(activity: ComponentActivity, onGranted: () -> Unit) {
+        activity.registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                onGranted()
+            }
+        }.launch(Manifest.permission.READ_PHONE_STATE)
+    }
+
+    private fun initializeCallMonitoring() {
+        try {
+            telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                // For API 31 and above
+                setupModernCallMonitoring()
+            } else {
+                // For API 30 and below
+                setupLegacyCallMonitoring()
+            }
+        } catch (e: SecurityException) {
+            Log.e("SecurityChecker", "Failed to initialize call monitoring", e)
+        }
+    }
+
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.S)
+    private fun setupModernCallMonitoring() {
+        try {
+            telephonyCallback = object : TelephonyCallback(), TelephonyCallback.CallStateListener {
+                override fun onCallStateChanged(state: Int) {
+                    handleCallStateChange(state)
+                }
+            }
+            telephonyManager?.registerTelephonyCallback(
+                context.mainExecutor,
+                telephonyCallback as TelephonyCallback
+            )
+        } catch (e: SecurityException) {
+            // Handle permission denial
+            e.printStackTrace()
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun setupLegacyCallMonitoring() {
+        try {
+            phoneStateListener = object : PhoneStateListener() {
+                override fun onCallStateChanged(state: Int, phoneNumber: String?) {
+                    handleCallStateChange(state)
+                }
+            }
+            telephonyManager?.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE)
+        } catch (e: SecurityException) {
+            // Handle permission denial
+            e.printStackTrace()
+        }
+    }
+
+    private fun handleCallStateChange(state: Int) {
+        if (config.ongoingCallCheck == SecurityCheckState.DISABLED) return
+
+        val isCallActive = when (state) {
+            TelephonyManager.CALL_STATE_OFFHOOK, 
+            TelephonyManager.CALL_STATE_RINGING -> true
+            else -> false
+        }
+
+        if (isCallActive) {
+            when (config.ongoingCallCheck) {
+                SecurityCheckState.WARNING ->
+                    showSecurityDialog(
+                        context,
+                        context.getString(R.string.ongoing_call_warning),
+                        false
+                    )
+                SecurityCheckState.ERROR ->
+                    showSecurityDialog(
+                        context,
+                        context.getString(R.string.ongoing_call_critical),
+                        true
+                    )
+                else -> { /* Do nothing for DISABLED */ }
+            }
+        }
+    }
 
     private fun showNextDialog(context: Context) {
         if (isShowingDialog || dialogQueue.isEmpty()) {
@@ -97,7 +260,7 @@ class SecurityChecker(private val context: Context, private val config: Security
         val appSpoofingCheck: SecurityCheckState = SecurityCheckState.WARNING,
         val keyloggerCheck: SecurityCheckState = SecurityCheckState.WARNING,
         val appSignature: SecurityCheckState = SecurityCheckState.WARNING,
-        val callActive: SecurityCheckState = SecurityCheckState.WARNING,
+        val ongoingCallCheck: SecurityCheckState = SecurityCheckState.WARNING,
         val expectedPackageName: String = "",
         val expectedSignature: String = ""
     )
@@ -227,18 +390,6 @@ class SecurityChecker(private val context: Context, private val config: Security
         return  SecurityCheck.Success
     }
 
-    fun checkInVoiceCall(isCallActive:Boolean): SecurityCheck {
-        if(isCallActive) {
-            return when (config.callActive) {
-                SecurityCheckState.WARNING -> SecurityCheck.Warning(context.getString(R.string.in_call_warning))
-                SecurityCheckState.ERROR -> SecurityCheck.Critical(context.getString(R.string.in_call_critical))
-                SecurityCheckState.DISABLED -> SecurityCheck.Success
-            }
-        }
-        return  SecurityCheck.Success
-    }
-
-
     // Check for malware and tampering
     fun checkMalwareAndTampering(): SecurityCheck {
         if (config.malwareCheck == SecurityCheckState.DISABLED && 
@@ -349,5 +500,102 @@ class SecurityChecker(private val context: Context, private val config: Security
     private fun verifySignature(signatures: Array<Signature>): Boolean {
         // In production, you would compare against your known good signature
         return signatures.isNotEmpty()
+    }
+
+    fun runSecurityChecks() {
+        // Check root status
+        val rootCheck = checkRootStatus()
+        if (rootCheck !is SecurityCheck.Success) {
+            showSecurityDialog(
+                context,
+                "Root Access Detected",
+                rootCheck is SecurityCheck.Critical
+            )
+            return
+        }
+
+        // Check developer options
+        val devCheck = checkDeveloperOptions()
+        if (devCheck !is SecurityCheck.Success) {
+            showSecurityDialog(
+                context,
+                "Developer Options Enabled",
+                devCheck is SecurityCheck.Critical
+            )
+            return
+        }
+
+        // Check malware
+        val malwareCheck = checkMalwareAndTampering()
+        if (malwareCheck !is SecurityCheck.Success) {
+            showSecurityDialog(
+                context,
+                "Malware Detected",
+                malwareCheck is SecurityCheck.Critical
+            )
+            return
+        }
+
+        // Check network security
+        val networkCheck = checkNetworkSecurity()
+        if (networkCheck !is SecurityCheck.Success) {
+            showSecurityDialog(
+                context,
+                "Network Security Issue",
+                networkCheck is SecurityCheck.Critical
+            )
+            return
+        }
+
+        // Check screen mirroring
+        val screenCheck = checkScreenMirroring()
+        if (screenCheck !is SecurityCheck.Success) {
+            showSecurityDialog(
+                context,
+                "Screen Mirroring Detected",
+                screenCheck is SecurityCheck.Critical
+            )
+            return
+        }
+
+        // Check app spoofing
+        val spoofingCheck = checkAppSpoofing()
+        if (spoofingCheck !is SecurityCheck.Success) {
+            showSecurityDialog(
+                context,
+                "App Spoofing Detected",
+                spoofingCheck is SecurityCheck.Critical
+            )
+            return
+        }
+
+        // Check keylogger
+        val keyloggerCheck = checkKeyLoggerDetection()
+        if (keyloggerCheck !is SecurityCheck.Success) {
+            showSecurityDialog(
+                context,
+                "Keylogger Detected",
+                keyloggerCheck is SecurityCheck.Critical
+            )
+            return
+        }
+    }
+
+    fun cleanup() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            telephonyCallback?.let { callback ->
+                telephonyManager?.unregisterTelephonyCallback(callback)
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            phoneStateListener?.let { listener ->
+                telephonyManager?.listen(listener, PhoneStateListener.LISTEN_NONE)
+            }
+        }
+        telephonyCallback = null
+        phoneStateListener = null
+        telephonyManager = null
+        activity = null
+        permissionGrantedCallback = null
     }
 }

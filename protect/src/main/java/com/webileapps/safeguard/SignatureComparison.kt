@@ -34,15 +34,15 @@ class SignatureComparison {
                 return false
             }
 
-            // Compute SHA-1 hash of the first signature
-            val appSignatureHash = getSHA1Hash(signatures[0].toByteArray())
-            if (appSignatureHash.isNullOrEmpty()) {
-                Log.e(TAG, "Error generating hash for the app's signature.")
-                return false
-            }
+
+            val md = MessageDigest.getInstance("SHA-1");
+            val originalDigest = md.digest(expectedSignatureHash.toByteArray())
+
+            val currentDigest = md.digest(signatures[0].toByteArray())
+
 
             // Compare with the expected signature hash
-            val isValid = expectedSignatureHash.equals(appSignatureHash, ignoreCase = true)
+            val isValid = MessageDigest.isEqual(originalDigest, currentDigest)
             if (isValid) {
                 Log.d(TAG, "App signature is valid.")
             } else {
@@ -56,21 +56,4 @@ class SignatureComparison {
         }
     }
 
-
-    private fun getSHA1Hash(signatureBytes: ByteArray): String? {
-        try {
-            val digest = MessageDigest.getInstance("SHA-1")
-            val hash = digest.digest(signatureBytes)
-
-            // Convert hash to a hexadecimal string
-            val hexString = StringBuilder()
-            for (b in hash) {
-                hexString.append(String.format("%02x", b))
-            }
-            return hexString.toString()
-        } catch (e: Exception) {
-            Log.e(TAG, "Error generating SHA-1 hash", e)
-            return null
-        }
-    }
     }

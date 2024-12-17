@@ -24,6 +24,10 @@ import androidx.core.content.ContextCompat
 import com.webileapps.safeguard.NetworkUtils.isProxySet
 import com.webileapps.safeguard.NetworkUtils.isVPNActive
 import com.webileapps.safeguard.NetworkUtils.isWifiSecure
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
+import java.security.MessageDigest
 import java.util.function.Consumer
 import kotlin.system.exitProcess
 
@@ -640,5 +644,48 @@ class SecurityChecker(private val context: Context, private val config: Security
         telephonyManager = null
         networkCallback = null
         connectivityManager = null
+    }
+
+    fun generateFileChecksum(file: File, algorithm: String = "SHA-256"): String? {
+        try {
+            // Create a MessageDigest instance
+            val messageDigest = MessageDigest.getInstance(algorithm)
+
+            // Read file and update the digest
+            val inputStream: InputStream = FileInputStream(file)
+            val buffer = ByteArray(1024)
+            var bytesRead: Int
+            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                messageDigest.update(buffer, 0, bytesRead)
+            }
+            inputStream.close()
+
+            // Convert the digest to a hexadecimal string
+            val hashBytes = messageDigest.digest()
+            return hashBytes.joinToString("") { "%02x".format(it) }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+    }
+
+    fun validateFileChecksum(file: File, expectedChecksum: String, algorithm: String = "SHA-256"): Boolean {
+        val generatedChecksum = generateFileChecksum(file, algorithm)
+        return generatedChecksum != null && generatedChecksum.equals(expectedChecksum, ignoreCase = true)
+    }
+
+    fun checkFileIntegrity(filePath: String, expectedChecksum: String) {
+        val file = File(filePath)
+
+        if (file.exists()) {
+            val isValid = validateFileChecksum(file, expectedChecksum, "SHA-256")
+            if (isValid) {
+                Log.d("ChecksumValidation", "File is valid! Checksum matches.")
+            } else {
+                Log.e("ChecksumValidation", "File checksum mismatch! Possible tampering detected.")
+            }
+        } else {
+            Log.e("ChecksumValidation", "File does not exist: $filePath")
+        }
     }
 }

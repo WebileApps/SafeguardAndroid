@@ -8,13 +8,7 @@ import com.webileapps.safeguard.AppActivity
 import com.webileapps.safeguard.NetworkChangeReceiver
 import com.webileapps.safeguard.SecurityChecker
 import com.webileapps.safeguard.SecurityConfigManager
-import com.webileapps.safeguard.checkApplicationSpoofing
-import com.webileapps.safeguard.checkDeveloperOptions
-import com.webileapps.safeguard.checkKeyLoggerDetection
-import com.webileapps.safeguard.checkMalware
-import com.webileapps.safeguard.checkNetwork
-import com.webileapps.safeguard.checkRoot
-import com.webileapps.safeguard.checkScreenMirroring
+import com.webileapps.safeguard.CyberUtils
 import com.webileapps.protect.sample.databinding.ActivityMainBinding
 
 class MainActivity : AppActivity() {
@@ -27,23 +21,21 @@ class MainActivity : AppActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
-        /*TODO: Mobile application shall check new network connections or connections for unsecured networks like VPN connection, proxy and unsecured Wi-Fi connections.77~@*/
         // Initialize SecurityConfigManager with desired configuration
         SecurityConfigManager.initialize(
             this,
             SecurityChecker.SecurityConfig(
-                rootCheck = SecurityChecker.SecurityCheckState.WARNING,
-                developerOptionsCheck = SecurityChecker.SecurityCheckState.WARNING,
-                malwareCheck = SecurityChecker.SecurityCheckState.WARNING,
-                tamperingCheck = SecurityChecker.SecurityCheckState.WARNING,
-                appSpoofingCheck = SecurityChecker.SecurityCheckState.WARNING,
-                networkSecurityCheck = SecurityChecker.SecurityCheckState.WARNING,
-                screenSharingCheck = SecurityChecker.SecurityCheckState.WARNING,
-                keyloggerCheck = SecurityChecker.SecurityCheckState.WARNING,
-                ongoingCallCheck = SecurityChecker.SecurityCheckState.WARNING,
-                expectedPackageName = "com.webileapps.protect.sample",
-                expectedSignature = ""
+                SecurityChecker.SecurityCheckState.WARNING,  // rootCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // developerOptionsCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // malwareCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // tamperingCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // appSpoofingCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // networkSecurityCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // screenSharingCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // keyloggerCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // ongoingCallCheck
+                "com.webileapps.protect.sample",            // expectedPackageName
+                ""                                          // expectedSignature
             )
         )
 
@@ -54,55 +46,65 @@ class MainActivity : AppActivity() {
         val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
         registerReceiver(networkChangeReceiver, filter)
 
-        securityChecker.setupCallMonitoring(activity= this, onPermissionDenied = {
-        })
+        securityChecker.setupCallMonitoring(this) {
+            // Handle permission denied
+        }
 
         setupButtons()
     }
 
     private fun setupButtons() {
-        // Update button click handlers to use lambda for better readability
         binding.btnCheckRoot.setOnClickListener { 
-            this.checkRoot(securityChecker) { success ->
+            CyberUtils.checkRoot(this, securityChecker) { success ->
                 logCheckResult("Root", success)
             }
         }
+
         binding.btnCheckDeveloper.setOnClickListener {
-            this.checkDeveloperOptions(securityChecker) { success ->
+            CyberUtils.checkDeveloperOptions(this, securityChecker) { success ->
                 logCheckResult("Developer Options", success)
             }
         }
+
         binding.btnCheckNetwork.setOnClickListener { 
-            this.checkNetwork(securityChecker) { success ->
+            CyberUtils.checkNetwork(this, securityChecker) { success ->
                 logCheckResult("Network", success)
             }
         }
+
         binding.btnCheckMalware.setOnClickListener { 
-            this.checkMalware(securityChecker) { success ->
+            CyberUtils.checkMalware(this, securityChecker) { success ->
                 logCheckResult("Malware", success)
             }
         }
+
         binding.btnCheckScreenMirroring.setOnClickListener { 
-            this.checkScreenMirroring(securityChecker) { success ->
+            CyberUtils.checkScreenMirroring(this, securityChecker) { success ->
                 logCheckResult("Screen Mirroring", success)
             }
         }
+
         binding.btnAppSpoofing.setOnClickListener { 
-            this.checkApplicationSpoofing(securityChecker) { success ->
+            CyberUtils.checkApplicationSpoofing(this, securityChecker) { success ->
                 logCheckResult("App Spoofing", success)
             }
         }
+
         binding.btnKeyLoggerDetection.setOnClickListener { 
-            this.checkKeyLoggerDetection(securityChecker) { success ->
+            CyberUtils.checkKeyLoggerDetection(this, securityChecker) { success ->
                 logCheckResult("Keylogger", success)
             }
         }
     }
 
     private fun logCheckResult(checkName: String, success: Boolean) {
-        val result = if (success) "passed" else "failed"
-        Log.d("SecurityCheck", "$checkName check $result")
+        Log.d("SecurityCheck", "$checkName check result: $success")
     }
 
-
+    override fun onDestroy() {
+        super.onDestroy()
+        networkChangeReceiver?.let {
+            unregisterReceiver(it)
+        }
+    }
 }

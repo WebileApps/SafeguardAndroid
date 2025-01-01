@@ -10,25 +10,30 @@ import com.webileapps.safeguard.NetworkChangeReceiver
 
 class MyApplication : Application() {
     private var networkChangeReceiver: NetworkChangeReceiver? = null
+
     override fun onCreate() {
         super.onCreate()
 
-        /*TODO: Mobile application shall check new network connections or connections for unsecured networks like VPN connection, proxy and unsecured Wi-Fi connections.77~@*/
+        // Initialize network monitoring
         networkChangeReceiver = NetworkChangeReceiver()
         val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
         registerReceiver(networkChangeReceiver, filter)
 
+        // Add lifecycle observer
         ProcessLifecycleOwner.get().lifecycle.addObserver(
-            AppLifecycleObserver(
-                this
-            )
+            AppLifecycleObserver(this)
         )
     }
-
 
     companion object {
         private var currentActivity: Activity? = null
 
+        @JvmStatic
         fun getCurrentActivity(): Activity? = currentActivity
+
+        @JvmStatic
+        fun setCurrentActivity(activity: Activity?) {
+            currentActivity = activity
+        }
     }
 }

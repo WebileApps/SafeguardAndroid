@@ -51,9 +51,9 @@ public class SecurityChecker {
         private final SecurityCheckState developerOptionsCheck;
         private final SecurityCheckState malwareCheck;
         private final SecurityCheckState tamperingCheck;
+        private final SecurityCheckState appSpoofingCheck;
         private final SecurityCheckState networkSecurityCheck;
         private final SecurityCheckState screenSharingCheck;
-        private final SecurityCheckState appSpoofingCheck;
         private final SecurityCheckState keyloggerCheck;
         private final SecurityCheckState appSignature;
         private final SecurityCheckState ongoingCallCheck;
@@ -66,9 +66,9 @@ public class SecurityChecker {
                 SecurityCheckState.ERROR,    // developerOptionsCheck
                 SecurityCheckState.ERROR,    // malwareCheck
                 SecurityCheckState.ERROR,    // tamperingCheck
+                SecurityCheckState.WARNING,  // appSpoofingCheck
                 SecurityCheckState.WARNING,  // networkSecurityCheck
                 SecurityCheckState.WARNING,  // screenSharingCheck
-                SecurityCheckState.WARNING,  // appSpoofingCheck
                 SecurityCheckState.WARNING,  // keyloggerCheck
                 SecurityCheckState.WARNING,  // appSignature
                 SecurityCheckState.WARNING,  // ongoingCallCheck
@@ -82,11 +82,10 @@ public class SecurityChecker {
             SecurityCheckState developerOptionsCheck,
             SecurityCheckState malwareCheck,
             SecurityCheckState tamperingCheck,
+            SecurityCheckState appSpoofingCheck,
             SecurityCheckState networkSecurityCheck,
             SecurityCheckState screenSharingCheck,
-            SecurityCheckState appSpoofingCheck,
             SecurityCheckState keyloggerCheck,
-            SecurityCheckState appSignature,
             SecurityCheckState ongoingCallCheck,
             String expectedPackageName,
             String expectedSignature
@@ -95,11 +94,11 @@ public class SecurityChecker {
             this.developerOptionsCheck = developerOptionsCheck;
             this.malwareCheck = malwareCheck;
             this.tamperingCheck = tamperingCheck;
+            this.appSpoofingCheck = appSpoofingCheck;
             this.networkSecurityCheck = networkSecurityCheck;
             this.screenSharingCheck = screenSharingCheck;
-            this.appSpoofingCheck = appSpoofingCheck;
             this.keyloggerCheck = keyloggerCheck;
-            this.appSignature = appSignature;
+            this.appSignature = SecurityCheckState.WARNING; // Default value
             this.ongoingCallCheck = ongoingCallCheck;
             this.expectedPackageName = expectedPackageName;
             this.expectedSignature = expectedSignature;
@@ -110,9 +109,9 @@ public class SecurityChecker {
         public SecurityCheckState getDeveloperOptionsCheck() { return developerOptionsCheck; }
         public SecurityCheckState getMalwareCheck() { return malwareCheck; }
         public SecurityCheckState getTamperingCheck() { return tamperingCheck; }
+        public SecurityCheckState getAppSpoofingCheck() { return appSpoofingCheck; }
         public SecurityCheckState getNetworkSecurityCheck() { return networkSecurityCheck; }
         public SecurityCheckState getScreenSharingCheck() { return screenSharingCheck; }
-        public SecurityCheckState getAppSpoofingCheck() { return appSpoofingCheck; }
         public SecurityCheckState getKeyloggerCheck() { return keyloggerCheck; }
         public SecurityCheckState getAppSignature() { return appSignature; }
         public SecurityCheckState getOngoingCallCheck() { return ongoingCallCheck; }

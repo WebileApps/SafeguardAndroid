@@ -17,28 +17,28 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
         if (isNetworkConnected(context)) {
             if (NetworkUtils.isVPNActive(context)) {
                 SecurityConfigManager.getSecurityChecker().showSecurityDialog(
-                    AppActivity.context, 
+                    context,
                     context.getString(R.string.vpn_warning), 
                     false, 
-                    () -> {}
+                    (ok) -> {}
                 );
             }
             else if (NetworkUtils.isProxySet(context)) {
                 // Handle proxy detection
                 SecurityConfigManager.getSecurityChecker().showSecurityDialog(
-                    AppActivity.context, 
+                    context,
                     context.getString(R.string.proxy_warning), 
                     false, 
-                    () -> {}
+                    (ok) -> {}
                 );
             }
             else if (!NetworkUtils.isWifiSecure(context)) {
                 // Handle unsecured Wi-Fi detection
                 SecurityConfigManager.getSecurityChecker().showSecurityDialog(
-                    AppActivity.context, 
+                    context,
                     context.getString(R.string.usecured_network_warning), 
                     false, 
-                    () -> {}
+                    (ok) -> {}
                 );
             }
         } else {

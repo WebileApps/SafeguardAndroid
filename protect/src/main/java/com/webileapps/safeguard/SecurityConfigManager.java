@@ -27,10 +27,14 @@ public class SecurityConfigManager {
                 SecurityChecker.SecurityCheckState.ERROR,    // developerOptionsCheck
                 SecurityChecker.SecurityCheckState.ERROR,    // malwareCheck
                 SecurityChecker.SecurityCheckState.ERROR,    // tamperingCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // appSpoofingCheck
                 SecurityChecker.SecurityCheckState.WARNING,  // networkSecurityCheck
                 SecurityChecker.SecurityCheckState.WARNING,  // screenSharingCheck
-                SecurityChecker.SecurityCheckState.WARNING,  // appSpoofingCheck
-                SecurityChecker.SecurityCheckState.WARNING   // keyloggerCheck
+                SecurityChecker.SecurityCheckState.WARNING,   // keyloggerCheck
+                SecurityChecker.SecurityCheckState.WARNING,   // onGoingCallCheck
+                SecurityChecker.SecurityCheckState.WARNING,   // appSignatureCheck
+                "",
+                    ""
             );
         }
         return config;

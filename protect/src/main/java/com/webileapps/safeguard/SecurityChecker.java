@@ -87,6 +87,7 @@ public class SecurityChecker {
             SecurityCheckState screenSharingCheck,
             SecurityCheckState keyloggerCheck,
             SecurityCheckState ongoingCallCheck,
+            SecurityCheckState appSignature,
             String expectedPackageName,
             String expectedSignature
         ) {
@@ -98,7 +99,7 @@ public class SecurityChecker {
             this.networkSecurityCheck = networkSecurityCheck;
             this.screenSharingCheck = screenSharingCheck;
             this.keyloggerCheck = keyloggerCheck;
-            this.appSignature = SecurityCheckState.WARNING; // Default value
+            this.appSignature = appSignature;
             this.ongoingCallCheck = ongoingCallCheck;
             this.expectedPackageName = expectedPackageName;
             this.expectedSignature = expectedSignature;
@@ -418,33 +419,44 @@ public class SecurityChecker {
 
         try {
             boolean developerMode = Settings.Global.getInt(
-                context.getContentResolver(),
-                Settings.Global.DEVELOPMENT_SETTINGS_ENABLED
+                    context.getContentResolver(),
+                    Settings.Global.DEVELOPMENT_SETTINGS_ENABLED
             ) != 0;
 
+            if (developerMode) {
+                return createDevOptionsResponse("Developer options are enabled.");
+            }
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        try {
             boolean usbDebugging = Settings.Global.getInt(
-                context.getContentResolver(),
-                Settings.Global.ADB_ENABLED
+                    context.getContentResolver(),
+                    Settings.Global.ADB_ENABLED
             ) != 0;
+            if (usbDebugging) {
+                return createDevOptionsResponse("USB debugging is enabled.");
+            }
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
 
+        try {
             boolean mockLocation = !"0".equals(Settings.Secure.getString(
                 context.getContentResolver(),
                 Settings.Secure.ALLOW_MOCK_LOCATION
             ));
 
-            if (developerMode) {
-                return createDevOptionsResponse("Developer options are enabled.");
-            } else if (usbDebugging) {
-                return createDevOptionsResponse("USB debugging is enabled.");
-            } else if (mockLocation) {
+            if (mockLocation) {
                 return createDevOptionsResponse("Mock location is enabled.");
             } else if (isTimeManipulated()) {
                 return createDevOptionsResponse("Automatic time settings are disabled.");
             }
-        } catch (Settings.SettingNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
         return new SecurityCheck.Success();
     }
 

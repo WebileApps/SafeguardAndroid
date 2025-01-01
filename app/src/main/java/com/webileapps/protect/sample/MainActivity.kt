@@ -34,6 +34,7 @@ class MainActivity : AppActivity() {
                 SecurityChecker.SecurityCheckState.WARNING,  // screenSharingCheck
                 SecurityChecker.SecurityCheckState.WARNING,  // keyloggerCheck
                 SecurityChecker.SecurityCheckState.WARNING,  // ongoingCallCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // appSignatureCheck
                 "com.webileapps.protect.sample",            // expectedPackageName
                 ""                                          // expectedSignature
             )
@@ -103,8 +104,6 @@ class MainActivity : AppActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        networkChangeReceiver?.let {
-            unregisterReceiver(it)
-        }
+        unregisterReceiver(networkChangeReceiver)
     }
 }

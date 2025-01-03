@@ -3,6 +3,9 @@ plugins {
     id 'maven-publish'
 }
 
+group = 'com.github.webileapps'
+version = '0.2.0'
+
 android {
     namespace 'com.webileapps.safeguard'
     compileSdk 34
@@ -22,8 +25,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     publishing {
         singleVariant("release") {
@@ -50,11 +53,11 @@ afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
+                from components.release
+
                 groupId = 'com.github.webileapps'
                 artifactId = 'safeguard'
                 version = '0.2.0'
-                
-                from components.release
 
                 pom {
                     name = 'Safeguard'

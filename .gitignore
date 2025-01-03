@@ -73,3 +73,5 @@ google-services.json
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+test_network.sh

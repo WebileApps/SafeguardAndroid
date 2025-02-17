@@ -9,6 +9,7 @@ public class SecurityConfigManager {
     public static void initialize(Context context, SecurityChecker.SecurityConfig configuration) {
         config = configuration;
         securityChecker = new SecurityChecker(context, configuration);
+        new SecurityChecker(context).startFridaDetection();
     }
 
     public static SecurityChecker getSecurityChecker() {

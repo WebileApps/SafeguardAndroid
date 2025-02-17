@@ -1,6 +1,7 @@
 package com.webileapps.safeguard;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -12,6 +13,8 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.net.LinkProperties;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyCallback;
@@ -45,6 +48,7 @@ public class SecurityChecker {
     private ComponentActivity activity;
     private Runnable permissionGrantedCallback;
     private ActivityResultLauncher<String> permissionLauncher;
+    private Handler handler = new Handler(Looper.getMainLooper());
 
     public static class SecurityConfig {
         private final SecurityCheckState rootCheck;
@@ -755,4 +759,29 @@ public class SecurityChecker {
             Log.e("ChecksumValidation", "File does not exist: " + filePath);
         }
     }
+
+    public void startFridaDetection(){
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                FridaDetection fridaDetection = new FridaDetection();
+                if(fridaDetection.detectFridaDebugging()){
+                    exitApp();
+                }
+                handler.postDelayed(this,5000);
+            }
+        });
+    }
+
+    public void exitApp(){
+        ActivityManager activityManager= (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        if (activityManager != null) {
+            for (ActivityManager.AppTask task : activityManager.getAppTasks()) {
+                task.finishAndRemoveTask(); // Finish and remove each task
+            }
+        }
+        System.exit(0);
+    }
+
 }

@@ -36,7 +36,7 @@ class MainActivity : AppActivity() {
                 SecurityChecker.SecurityCheckState.WARNING,  // ongoingCallCheck
                 SecurityChecker.SecurityCheckState.WARNING,  // appSignatureCheck
                 "com.webileapps.protect.sample",            // expectedPackageName
-                ""                                          // expectedSignature
+                "2A36434023EECADABE4F43B09C4BF95AB2594256BD0A2577424B85BC2C6E0CBB"                                          // expectedSignature
             )
         )
 

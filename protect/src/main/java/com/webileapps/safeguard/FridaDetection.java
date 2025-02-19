@@ -123,7 +123,9 @@ public class FridaDetection {
         boolean fridaTracer = detectFridaTracer();
 
         boolean detected = fridaServer || fridaPort || fridaLibrary || fridaTracer;
-        Log.e("Security>>>", "Frida detection result: Server=" + fridaServer + ", Port=" + fridaPort + ", Library=" + fridaLibrary + ", Tracer=" + fridaTracer);
+        if (detected) {
+            Log.e("Security>>>", "Frida detection result: Server=" + fridaServer + ", Port=" + fridaPort + ", Library=" + fridaLibrary + ", Tracer=" + fridaTracer);
+        }
 
         return detected;
     }

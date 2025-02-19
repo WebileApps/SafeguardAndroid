@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
@@ -19,11 +20,23 @@ public class FridaDetection {
 
             for (File file : files) {
                 if (file.getName().matches("\\d+")) {  // Check only PID directories
-                    String cmdline = new String(java.nio.file.Files.readAllBytes(new File("/proc/" + file.getName() + "/cmdline").toPath()));
-                    for (String suspiciousProcess : suspiciousProcesses) {
-                        if (cmdline.contains(suspiciousProcess)) {
-                            Log.e("Security", "Frida detected: " + cmdline);
-                            return true;
+                    FileInputStream fis = null;
+                    try {
+                        fis = new FileInputStream(new File("/proc/" + file.getName() + "/cmdline"));
+                        byte[] data = new byte[fis.available()];
+                        fis.read(data);
+                        String cmdline = new String(data);
+                        for (String suspiciousProcess : suspiciousProcesses) {
+                            if (cmdline.contains(suspiciousProcess)) {
+                                Log.e("Security", "Frida detected: " + cmdline);
+                                return true;
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (fis != null) {
+                            fis.close();
                         }
                     }
                 }
@@ -48,12 +61,25 @@ public class FridaDetection {
 
     public boolean detectFridaLibrary() {
         try {
-            String maps = new String(java.nio.file.Files.readAllBytes(new File("/proc/self/maps").toPath()));
-            if (maps.contains("frida") || maps.contains("gum-js")) {
-                Log.e("Security", "Frida detected in memory!");
-                return true;
+            FileInputStream fis = null;
+            try {
+                fis = new FileInputStream(new File("/proc/self/maps"));
+                byte[] data = new byte[fis.available()];
+                fis.read(data);
+                String maps = new String(data);
+                if (maps.contains("frida") || maps.contains("gum-js")) {
+                    Log.e("Security", "Frida detected in memory!");
+                    return true;
+                }
+                return false;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            } finally {
+                if (fis != null) {
+                    fis.close();
+                }
             }
-            return false;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -62,14 +88,28 @@ public class FridaDetection {
 
     public boolean detectFridaTracer() {
         try {
-            List<String> statusLines = java.nio.file.Files.readAllLines(new File("/proc/self/status").toPath());
-            for (String line : statusLines) {
-                if (line.startsWith("TracerPid")) {
-                    int tracerPid = Integer.parseInt(line.split("\t")[1].trim());
-                    return tracerPid > 0;
+            FileInputStream fis = null;
+            try {
+                fis = new FileInputStream(new File("/proc/self/status"));
+                byte[] data = new byte[fis.available()];
+                fis.read(data);
+                String status = new String(data);
+                String[] statusLines = status.split("\n");
+                for (String line : statusLines) {
+                    if (line.startsWith("TracerPid")) {
+                        int tracerPid = Integer.parseInt(line.split("\t")[1].trim());
+                        return tracerPid > 0;
+                    }
+                }
+                return false;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            } finally {
+                if (fis != null) {
+                    fis.close();
                 }
             }
-            return false;
         } catch (Exception e) {
             e.printStackTrace();
             return false;

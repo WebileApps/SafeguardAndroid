@@ -16,5 +16,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "protect"
-include ':protect',':app'
+include ':protect'
 // include ':app'

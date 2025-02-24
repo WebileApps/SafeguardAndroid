@@ -1,5 +1,6 @@
 package com.webileapps.safeguard;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -154,14 +155,21 @@ public class RootUtil {
 
     private List<String> getAllInstalledApps() {
         PackageManager packageManager = context.getPackageManager();
-        List<android.content.pm.PackageInfo> installedPackages = packageManager.getInstalledPackages(0);
+
+        // Query installed apps (ensure QUERY_ALL_PACKAGES is handled)
+        List<android.content.pm.PackageInfo> installedPackages = packageManager.getInstalledPackages(PackageManager.GET_META_DATA);
         List<String> packageNames = new ArrayList<>();
 
         for (android.content.pm.PackageInfo packageInfo : installedPackages) {
-            if ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
-                packageNames.add(packageInfo.packageName);
+            ApplicationInfo appInfo = packageInfo.applicationInfo;
+
+            // Ensure it's a user-installed app
+            if ((appInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0 ||
+                    (appInfo.flags & ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0) {
+                packageNames.add(appInfo.packageName);
             }
         }
         return packageNames;
     }
+
 }

@@ -497,7 +497,7 @@ public class SecurityChecker {
         NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);
 
         if (capabilities == null) {
-            return createNetworkSecurityResponse("No active network connection");
+            return new SecurityCheck.Success();
         } else if (NetworkUtils.isVPNActive(context)) {
             return createNetworkSecurityResponse(context.getString(R.string.vpn_warning));
         } else if (NetworkUtils.isProxySet(context)) {

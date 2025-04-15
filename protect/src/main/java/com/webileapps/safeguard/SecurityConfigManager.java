@@ -9,7 +9,9 @@ public class SecurityConfigManager {
     public static void initialize(Context context, SecurityChecker.SecurityConfig configuration) {
         config = configuration;
         securityChecker = new SecurityChecker(context, configuration);
-        securityChecker.startFridaDetection();
+        if (configuration.getRootCheck() != SecurityChecker.SecurityCheckState.DISABLED) {
+            securityChecker.startFridaDetection();
+        }
     }
 
     public static SecurityChecker getSecurityChecker() {

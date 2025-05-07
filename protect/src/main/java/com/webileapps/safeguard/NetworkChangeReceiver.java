@@ -36,7 +36,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
                 // Handle unsecured Wi-Fi detection
                 SecurityConfigManager.getSecurityChecker().showSecurityDialog(
                     context,
-                    context.getString(R.string.usecured_network_warning), 
+                    context.getString(R.string.unsecured_network_warning),
                     false, 
                     (ok) -> {}
                 );

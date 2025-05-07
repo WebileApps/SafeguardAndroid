@@ -503,7 +503,7 @@ public class SecurityChecker {
         } else if (NetworkUtils.isProxySet(context)) {
             return createNetworkSecurityResponse(context.getString(R.string.proxy_warning));
         } else if (!NetworkUtils.isWifiSecure(context)) {
-            return createNetworkSecurityResponse(context.getString(R.string.usecured_network_warning));
+            return createNetworkSecurityResponse(context.getString(R.string.unsecured_network_warning));
         }
         
         return new SecurityCheck.Success();

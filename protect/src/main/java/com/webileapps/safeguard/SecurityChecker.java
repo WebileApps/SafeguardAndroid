@@ -428,7 +428,7 @@ public class SecurityChecker {
             ) != 0;
 
             if (developerMode) {
-                return createDevOptionsResponse("Developer options are enabled.");
+                return createDevOptionsResponse(activity.getString(R.string.developer_options_warning));
             }
         } catch (Settings.SettingNotFoundException e) {
             e.printStackTrace();
@@ -455,7 +455,7 @@ public class SecurityChecker {
             if (mockLocation) {
                 return createDevOptionsResponse("Mock location is enabled.");
             } else if (isTimeManipulated()) {
-                return createDevOptionsResponse("Automatic time settings are disabled.");
+                return createDevOptionsResponse(context.getString(R.string.auto_time_warning));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -467,9 +467,9 @@ public class SecurityChecker {
     private SecurityCheck createDevOptionsResponse(String message) {
         switch (config.getDeveloperOptionsCheck()) {
             case WARNING:
-                return new SecurityCheck.Warning(message + " This may pose security risks.");
+                return new SecurityCheck.Warning(message);
             case ERROR:
-                return new SecurityCheck.Critical(message + " Please disable it to continue using the application.");
+                return new SecurityCheck.Critical(message);
             default:
                 return new SecurityCheck.Success();
         }

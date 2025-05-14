@@ -33,10 +33,16 @@ class MainActivity : AppActivity() {
                 SecurityChecker.SecurityCheckState.WARNING,  // networkSecurityCheck
                 SecurityChecker.SecurityCheckState.WARNING,  // screenSharingCheck
                 SecurityChecker.SecurityCheckState.WARNING,  // keyloggerCheck
-                SecurityChecker.SecurityCheckState.WARNING,  // ongoingCallCheck
                 SecurityChecker.SecurityCheckState.WARNING,  // appSignatureCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // ongoingCallCheck
                 "com.webileapps.protect.sample",            // expectedPackageName
-                "2A36434023EECADABE4F43B09C4BF95AB2594256BD0A2577424B85BC2C6E0CBB"                                          // expectedSignature
+                "2A36434023EECADABE4F43B09C4BF95AB2594256BD0A2577424B85BC2C6E0CBB", // expectedSignature
+                "Critical Alert!",                          // criticalDialogTitle
+                "Heads Up!",                                // warningDialogTitle
+                "Exit App",                                 // criticalDialogPositiveButton
+                "Ignore Warning",                           // warningDialogPositiveButton
+                "Cancel",                                   // criticalDialogNegativeButton
+                null                                         // warningDialogNegativeButton
             )
         )
 

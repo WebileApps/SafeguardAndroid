@@ -61,6 +61,21 @@ public class SecurityChecker {
         private final SecurityCheckState keyloggerCheck;
         private final SecurityCheckState appSignature;
         private final SecurityCheckState ongoingCallCheck;
+
+        // Customizable dialog options with defaults
+        private String criticalDialogTitle = "Security Error";
+        private String warningDialogTitle = "Security Warning";
+        private String criticalDialogPositiveButton = "Quit";
+        private String warningDialogPositiveButton = "Continue Anyway";
+        private String criticalDialogNegativeButton = null;
+        private String warningDialogNegativeButton = null;
+
+        public String getCriticalDialogTitle() { return criticalDialogTitle; }
+        public String getWarningDialogTitle() { return warningDialogTitle; }
+        public String getCriticalDialogPositiveButton() { return criticalDialogPositiveButton; }
+        public String getWarningDialogPositiveButton() { return warningDialogPositiveButton; }
+        public String getCriticalDialogNegativeButton() { return criticalDialogNegativeButton; }
+        public String getWarningDialogNegativeButton() { return warningDialogNegativeButton; }
         private final String expectedPackageName;
         private final String expectedSignature;
 
@@ -90,10 +105,38 @@ public class SecurityChecker {
             SecurityCheckState networkSecurityCheck,
             SecurityCheckState screenSharingCheck,
             SecurityCheckState keyloggerCheck,
-            SecurityCheckState ongoingCallCheck,
             SecurityCheckState appSignature,
+            SecurityCheckState ongoingCallCheck,
             String expectedPackageName,
             String expectedSignature
+        ) {
+            this(rootCheck, developerOptionsCheck, malwareCheck, tamperingCheck, appSpoofingCheck, networkSecurityCheck,
+                screenSharingCheck, keyloggerCheck, appSignature, ongoingCallCheck, expectedPackageName, expectedSignature,
+                "Security Error", "Security Warning", "Quit", "Continue Anyway", null, null);
+        }
+
+        /**
+         * Extended constructor to allow dialog customization at runtime.
+         */
+        public SecurityConfig(
+            SecurityCheckState rootCheck,
+            SecurityCheckState developerOptionsCheck,
+            SecurityCheckState malwareCheck,
+            SecurityCheckState tamperingCheck,
+            SecurityCheckState appSpoofingCheck,
+            SecurityCheckState networkSecurityCheck,
+            SecurityCheckState screenSharingCheck,
+            SecurityCheckState keyloggerCheck,
+            SecurityCheckState appSignature,
+            SecurityCheckState ongoingCallCheck,
+            String expectedPackageName,
+            String expectedSignature,
+            String criticalDialogTitle,
+            String warningDialogTitle,
+            String criticalDialogPositiveButton,
+            String warningDialogPositiveButton,
+            String criticalDialogNegativeButton,
+            String warningDialogNegativeButton
         ) {
             this.rootCheck = rootCheck;
             this.developerOptionsCheck = developerOptionsCheck;
@@ -107,6 +150,12 @@ public class SecurityChecker {
             this.ongoingCallCheck = ongoingCallCheck;
             this.expectedPackageName = expectedPackageName;
             this.expectedSignature = expectedSignature;
+            this.criticalDialogTitle = criticalDialogTitle;
+            this.warningDialogTitle = warningDialogTitle;
+            this.criticalDialogPositiveButton = criticalDialogPositiveButton;
+            this.warningDialogPositiveButton = warningDialogPositiveButton;
+            this.criticalDialogNegativeButton = criticalDialogNegativeButton;
+            this.warningDialogNegativeButton = warningDialogNegativeButton;
         }
 
         // Getters
@@ -302,10 +351,15 @@ public class SecurityChecker {
         isShowingDialog = true;
         SecurityDialogInfo dialogInfo = dialogQueue.remove(0);
 
-        AlertDialog dialog = new AlertDialog.Builder(context)
-            .setTitle(dialogInfo.isCritical ? "Security Error" : "Security Warning")
+        // Use dialog options directly from config
+        String title = dialogInfo.isCritical ? config.getCriticalDialogTitle() : config.getWarningDialogTitle();
+        String positiveButton = dialogInfo.isCritical ? config.getCriticalDialogPositiveButton() : config.getWarningDialogPositiveButton();
+        String negativeButton = dialogInfo.isCritical ? config.getCriticalDialogNegativeButton() : config.getWarningDialogNegativeButton();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context)
+            .setTitle(title)
             .setMessage(dialogInfo.message)
-            .setPositiveButton(dialogInfo.isCritical ? "Quit" : "Continue Anyway", (dialogInterface, which) -> {
+            .setPositiveButton(positiveButton, (dialogInterface, which) -> {
                 dialogInterface.dismiss();
                 if (dialogInfo.isCritical) {
                     System.exit(0);
@@ -317,8 +371,16 @@ public class SecurityChecker {
                     showNextDialog(context);
                 }
             })
-            .setCancelable(!dialogInfo.isCritical)
-            .create();
+            .setCancelable(!dialogInfo.isCritical);
+        if (negativeButton != null && !negativeButton.isEmpty()) {
+            builder.setNegativeButton(negativeButton, (dialogInterface, which) -> {
+                dialogInterface.dismiss();
+                // Optionally handle negative button click here if needed
+                isShowingDialog = false;
+                showNextDialog(context);
+            });
+        }
+        AlertDialog dialog = builder.create();
 
         dialog.setOnDismissListener(dialogInterface -> {
             if (!dialogInfo.isCritical) {

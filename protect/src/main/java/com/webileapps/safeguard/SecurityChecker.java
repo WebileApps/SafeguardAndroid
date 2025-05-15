@@ -490,7 +490,7 @@ public class SecurityChecker {
             ) != 0;
 
             if (developerMode) {
-                return createDevOptionsResponse(activity.getString(R.string.developer_options_warning));
+                return createDevOptionsResponse(context.getString(R.string.developer_options_warning));
             }
         } catch (Settings.SettingNotFoundException e) {
             e.printStackTrace();

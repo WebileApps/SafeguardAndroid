@@ -1,25 +1,13 @@
-## Regulatory Guidelines
+This repository provides an Android security library to easily integrate security checks into Android applications. Its primary goal is to enhance application security, and it is designed to help developers meet common mobile application security regulatory guidelines.
 
-1. Mobile application should not work on rooted devices or on simulators.
-    Expected response: The mobile application will get closed by prompting user with the message for app closure. Like "Application is not allowed on rooted devices.". Clicking on "OK" will close the application.
+The library offers a comprehensive suite of security functionalities designed to protect applications from common threats. Key security checks include root detection, developer options detection, malware and tampering detection, network security assessments (such as identifying VPN, proxy, or unsecured Wi-Fi connections), screen mirroring and sharing detection, app spoofing prevention, and keylogger detection. These features work together to identify and mitigate potential security vulnerabilities, thereby strengthening the overall security posture of the application.
 
-1. Device Policy enforcement such as detection of developer option, USB debugging, Mock Location, time settings manipulation, etc. shall be configured.
-    Expected response: The mobile application will get closed by prompting user with the message for app closure. Like "Developer option are enabled on this device, which is not allowed. Please disable it to continue using the application.". Clicking on "OK" will close the application.
+## Key Components
 
-1. Mobile application shall check new network connections or connections for unsecured networks like VPN connection, proxy and unsecured Wi-Fi connections.
-    Expected behaviour: The mobile application shall warn the user about the unsecured network and allow user to continue using the application by owning the risk.
+The repository primarily consists of the following:
 
-1.  Mobile application shall have anti-malware capabilities covering application spoofing, RAT, screen mirroring, overlay malwares, key loggers, tap jacking, etc.
-    Expected response: The mobile application will get closed by prompting user with the message for app closure. Like "Application is being blocked due to malware detection. Please uninstall the application.". Clicking on "OK" will close the application.
-
-1. Controls to prevent reverse engineering and application tampering shall be implemented in the mobile applications. These controls shall also validate the signature during runtime for authenticity of the application.
-    Expected response: The mobile application will get closed by prompting user with the message for app closure. Like "Application signature is not as expected. Please uninstall the application and install the application from Google Play Store.". Clicking on "OK" will close the application.
-
-1.  Mobile application shall perform checksum validation and the checksum of applications shall be published in public domain.
-    Expected behaviour: The mobile application will get closed by prompting with the message that the checksum is not valid.
-
-1. Mobile application shall identify the presence of active remote access, screen mirroring, active voice call, alert users, etc. to prevent online frauds.
-    Expected behaviour: The mobile application shall warn the user about the presence of screen mirroring and allow the user to continue using the application by owning the risk.
+*   **`protect/`**: This is the core Android security library, containing all the native code for security checks.
+*   **`app/`**: This directory provides a sample native Android application demonstrating the integration and usage of the `protect` library.
 
 # Safeguard Android Security Library
 
@@ -58,12 +46,6 @@ dependencies {
 }
 ```
 
-### Cordova Plugin
-
-```bash
-cordova plugin add cordova-plugin-security-checker
-```
-
 ## Usage
 
 ### Android
@@ -90,45 +72,28 @@ class MainActivity : AppActivity() {
 }
 ```
 
-### Cordova
+## Regulatory Guidelines
 
-```javascript
-// Check all security features
-SecurityChecker.checkSecurity(
-    function(result) {
-        console.log('Security check passed:', result);
-    },
-    function(error) {
-        console.error('Security check failed:', error);
-    }
-);
+1. Mobile application should not work on rooted devices or on simulators.
+    Expected response: The mobile application will get closed by prompting user with the message for app closure. Like "Application is not allowed on rooted devices.". Clicking on "OK" will close the application.
 
-// Individual checks
-SecurityChecker.checkRoot(successCallback, errorCallback);
-SecurityChecker.checkDeveloperOptions(successCallback, errorCallback);
-SecurityChecker.checkMalware(successCallback, errorCallback);
-SecurityChecker.checkNetwork(successCallback, errorCallback);
-SecurityChecker.checkScreenMirroring(successCallback, errorCallback);
-SecurityChecker.checkApplicationSpoofing(successCallback, errorCallback);
-SecurityChecker.checkKeyLogger(successCallback, errorCallback);
-```
+1. Device Policy enforcement such as detection of developer option, USB debugging, Mock Location, time settings manipulation, etc. shall be configured.
+    Expected response: The mobile application will get closed by prompting user with the message for app closure. Like "Developer option are enabled on this device, which is not allowed. Please disable it to continue using the application.". Clicking on "OK" will close the application.
 
-## Configuration
+1. Mobile application shall check new network connections or connections for unsecured networks like VPN connection, proxy and unsecured Wi-Fi connections.
+    Expected behaviour: The mobile application shall warn the user about the unsecured network and allow user to continue using the application by owning the risk.
 
-### Cordova config.xml
+1.  Mobile application shall have anti-malware capabilities covering application spoofing, RAT, screen mirroring, overlay malwares, key loggers, tap jacking, etc.
+    Expected response: The mobile application will get closed by prompting user with the message for app closure. Like "Application is being blocked due to malware detection. Please uninstall the application.". Clicking on "OK" will close the application.
 
-```xml
-<preference name="ROOT_CHECK_STATE" value="ERROR" />
-<preference name="DEVELOPER_OPTIONS_CHECK_STATE" value="WARNING" />
-<preference name="MALWARE_CHECK_STATE" value="ERROR" />
-<preference name="TAMPERING_CHECK_STATE" value="ERROR" />
-<preference name="NETWORK_SECURITY_CHECK_STATE" value="WARNING" />
-<preference name="SCREEN_SHARING_CHECK_STATE" value="WARNING" />
-<preference name="APP_SPOOFING_CHECK_STATE" value="ERROR" />
-<preference name="KEYLOGGER_CHECK_STATE" value="ERROR" />
-```
+1. Controls to prevent reverse engineering and application tampering shall be implemented in the mobile applications. These controls shall also validate the signature during runtime for authenticity of the application.
+    Expected response: The mobile application will get closed by prompting user with the message for app closure. Like "Application signature is not as expected. Please uninstall the application and install the application from Google Play Store.". Clicking on "OK" will close the application.
 
-Values can be: `ERROR`, `WARNING`, or `DISABLED`
+1.  Mobile application shall perform checksum validation and the checksum of applications shall be published in public domain.
+    Expected behaviour: The mobile application will get closed by prompting with the message that the checksum is not valid.
+
+1. Mobile application shall identify the presence of active remote access, screen mirroring, active voice call, alert users, etc. to prevent online frauds.
+    Expected behaviour: The mobile application shall warn the user about the presence of screen mirroring and allow the user to continue using the application by owning the risk.
 
 ## License
 

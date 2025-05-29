@@ -1,6 +1,7 @@
 package com.webileapps.safeguard;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -344,52 +345,64 @@ public class SecurityChecker {
     }
 
     private void showNextDialog(Context context) {
-        if (isShowingDialog || dialogQueue.isEmpty()) {
-            return;
-        }
+        if (isShowingDialog || dialogQueue.isEmpty()) return;
 
-        isShowingDialog = true;
-        SecurityDialogInfo dialogInfo = dialogQueue.remove(0);
-
-        // Use dialog options directly from config
-        String title = dialogInfo.isCritical ? config.getCriticalDialogTitle() : config.getWarningDialogTitle();
-        String positiveButton = dialogInfo.isCritical ? config.getCriticalDialogPositiveButton() : config.getWarningDialogPositiveButton();
-        String negativeButton = dialogInfo.isCritical ? config.getCriticalDialogNegativeButton() : config.getWarningDialogNegativeButton();
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(context)
-            .setTitle(title)
-            .setMessage(dialogInfo.message)
-            .setPositiveButton(positiveButton, (dialogInterface, which) -> {
-                dialogInterface.dismiss();
-                if (dialogInfo.isCritical) {
-                    System.exit(0);
-                } else {
-                    if (dialogInfo.onResponse != null) {
-                        dialogInfo.onResponse.accept(true);
-                    }
-                    isShowingDialog = false;
-                    showNextDialog(context);
-                }
-            })
-            .setCancelable(!dialogInfo.isCritical);
-        if (negativeButton != null && !negativeButton.isEmpty()) {
-            builder.setNegativeButton(negativeButton, (dialogInterface, which) -> {
-                dialogInterface.dismiss();
-                // Optionally handle negative button click here if needed
-                isShowingDialog = false;
-                showNextDialog(context);
-            });
-        }
-        AlertDialog dialog = builder.create();
-
-        dialog.setOnDismissListener(dialogInterface -> {
-            if (!dialogInfo.isCritical) {
-                isShowingDialog = false;
-                showNextDialog(context);
+        // Ensure this runs on UI thread
+        new Handler(Looper.getMainLooper()).post(() -> {
+            if (!(context instanceof Activity)) {
+                return;
             }
-        });
 
-        dialog.show();
+            Activity activity = (Activity) context;
+
+            // Check if activity is in valid state
+            if (activity.isFinishing() || activity.isDestroyed()) {
+                return;
+            }
+
+            isShowingDialog = true;
+            SecurityDialogInfo dialogInfo = dialogQueue.remove(0);
+
+            String title = dialogInfo.isCritical ? config.getCriticalDialogTitle() : config.getWarningDialogTitle();
+            String positiveButton = dialogInfo.isCritical ? config.getCriticalDialogPositiveButton() : config.getWarningDialogPositiveButton();
+            String negativeButton = dialogInfo.isCritical ? config.getCriticalDialogNegativeButton() : config.getWarningDialogNegativeButton();
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+                    .setTitle(title)
+                    .setMessage(dialogInfo.message)
+                    .setPositiveButton(positiveButton, (dialogInterface, which) -> {
+                        dialogInterface.dismiss();
+                        if (dialogInfo.isCritical) {
+                            System.exit(0);
+                        } else {
+                            if (dialogInfo.onResponse != null) {
+                                dialogInfo.onResponse.accept(true);
+                            }
+                            isShowingDialog = false;
+                            showNextDialog(activity);
+                        }
+                    })
+                    .setCancelable(!dialogInfo.isCritical);
+
+            if (negativeButton != null && !negativeButton.isEmpty()) {
+                builder.setNegativeButton(negativeButton, (dialogInterface, which) -> {
+                    dialogInterface.dismiss();
+                    isShowingDialog = false;
+                    showNextDialog(activity);
+                });
+            }
+
+            AlertDialog dialog = builder.create();
+
+            dialog.setOnDismissListener(dialogInterface -> {
+                if (!dialogInfo.isCritical) {
+                    isShowingDialog = false;
+                    showNextDialog(activity);
+                }
+            });
+
+            dialog.show();
+        });
     }
 
     public void showSecurityDialog(Context context, String message, boolean isCritical, Consumer<Boolean> onResponse) {

@@ -16,7 +16,6 @@ public class DevicePolicyEnforcement {
         // showPolicyViolationDialog(context);
         return isDevOptionsEnabled || isUSBDebuggingEnabled || isMockLocationEnabled || isTimeManipulated;
     }
-
     private static boolean isDeveloperOptionsEnabled(Context context) {
         try {
             int devOptions = Settings.Global.getInt(
@@ -25,11 +24,10 @@ public class DevicePolicyEnforcement {
             );
             return devOptions == 1;
         } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
+
             return false;
         }
     }
-
     private static boolean isUSBDebuggingEnabled(Context context) {
         try {
             int adbEnabled = Settings.Global.getInt(
@@ -38,11 +36,10 @@ public class DevicePolicyEnforcement {
             );
             return adbEnabled == 1;
         } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
+
             return false;
         }
     }
-
     private static boolean isTimeManipulated(Context context) {
         try {
             int autoTime = Settings.Global.getInt(
@@ -55,7 +52,7 @@ public class DevicePolicyEnforcement {
             );
             return autoTime == 0 || autoTimeZone == 0;
         } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
+
             return false;
         }
     }

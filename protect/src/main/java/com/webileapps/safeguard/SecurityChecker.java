@@ -288,8 +288,7 @@ public class SecurityChecker {
                 callStateListener
             );
             telephonyCallback = callStateListener;
-        } catch (SecurityException e) {
-            e.printStackTrace();
+        } catch (SecurityException ignored) {
         }
     }
 
@@ -303,8 +302,7 @@ public class SecurityChecker {
                 }
             };
             telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
-        } catch (SecurityException e) {
-            e.printStackTrace();
+        } catch (SecurityException ignored) {
         }
     }
 
@@ -505,8 +503,7 @@ public class SecurityChecker {
             if (developerMode) {
                 return createDevOptionsResponse(context.getString(R.string.developer_options_warning));
             }
-        } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
+        } catch (Settings.SettingNotFoundException ignored) {
         }
 
         try {
@@ -517,8 +514,7 @@ public class SecurityChecker {
             if (usbDebugging) {
                 return createDevOptionsResponse("USB debugging is enabled.");
             }
-        } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
+        } catch (Settings.SettingNotFoundException ignored) {
         }
 
         try {
@@ -532,8 +528,7 @@ public class SecurityChecker {
             } else if (isTimeManipulated()) {
                 return createDevOptionsResponse(context.getString(R.string.auto_time_warning));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
         }
 
         return new SecurityCheck.Success();
@@ -556,7 +551,6 @@ public class SecurityChecker {
             int autoTimeZone = Settings.Global.getInt(context.getContentResolver(), Settings.Global.AUTO_TIME_ZONE);
             return autoTime == 0 || autoTimeZone == 0;
         } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -810,7 +804,6 @@ public class SecurityChecker {
             }
             return hexString.toString();
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
     }

@@ -5,6 +5,7 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
@@ -19,13 +20,20 @@ public class FridaDetection {
             if (files == null) return false;
 
             for (File file : files) {
-                if (file.getName().matches("\\d+")) {  // Check only PID directories
+                String fileName = file.getName();
+
+                // Avoid regex - check if name is numeric (PID)
+                if (isNumeric(fileName)) {
                     FileInputStream fis = null;
                     try {
-                        fis = new FileInputStream(new File("/proc/" + file.getName() + "/cmdline"));
+                        File cmdlineFile = new File("/proc/" + fileName + "/cmdline");
+                        if (!cmdlineFile.exists()) continue;
+
+                        fis = new FileInputStream(cmdlineFile);
                         byte[] data = new byte[fis.available()];
                         fis.read(data);
-                        String cmdline = new String(data);
+
+                        String cmdline = new String(data).trim();
                         for (String suspiciousProcess : suspiciousProcesses) {
                             if (cmdline.contains(suspiciousProcess)) {
                                 Log.e("Security", "Frida detected: " + cmdline);
@@ -33,19 +41,26 @@ public class FridaDetection {
                             }
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        // Likely a permissions issue; ignore
                     } finally {
                         if (fis != null) {
-                            fis.close();
+                            try { fis.close(); } catch (IOException ignored) {}
                         }
                     }
                 }
             }
-            return false;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+        } catch (Exception ignored) {
+
         }
+        return false;
+    }
+
+    private boolean isNumeric(String str) {
+        if (str == null || str.isEmpty()) return false;
+        for (int i = 0; i < str.length(); i++) {
+            if (!Character.isDigit(str.charAt(i))) return false;
+        }
+        return true;
     }
 
     public boolean detectFridaPort() {
@@ -54,7 +69,7 @@ public class FridaDetection {
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             return reader.lines().anyMatch(line -> line.contains("27042") || line.contains("frida"));
         } catch (Exception e) {
-            e.printStackTrace();
+
             return false;
         }
     }
@@ -73,7 +88,6 @@ public class FridaDetection {
                 }
                 return false;
             } catch (Exception e) {
-                e.printStackTrace();
                 return false;
             } finally {
                 if (fis != null) {
@@ -81,7 +95,6 @@ public class FridaDetection {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -103,7 +116,6 @@ public class FridaDetection {
                 }
                 return false;
             } catch (Exception e) {
-                e.printStackTrace();
                 return false;
             } finally {
                 if (fis != null) {
@@ -111,7 +123,6 @@ public class FridaDetection {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
             return false;
         }
     }

@@ -129,7 +129,6 @@ public class CyberUtils {
             onChecked.accept(true);
         }
     }
-
     public static void checkKeyLoggerDetection(Context context, SecurityChecker securityChecker, Consumer<Boolean> onChecked) {
         SecurityChecker.SecurityCheck result = securityChecker.checkKeyLoggerDetection();
         if (result instanceof SecurityChecker.SecurityCheck.Warning) {

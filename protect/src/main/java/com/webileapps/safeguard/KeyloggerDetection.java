@@ -13,8 +13,7 @@ public class KeyloggerDetection {
             if (enabledServices != null && enabledServices.contains(context.getPackageName())) {
                 return true;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
         }
         return false;
     }

@@ -17,7 +17,6 @@ public class NetworkUtils {
         NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(activeNetwork);
         return capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN);
     }
-
     public static boolean isProxySet(Context context) {
         try {
             ConnectivityManager connectivityManager = 
@@ -29,7 +28,6 @@ public class NetworkUtils {
             return false;
         }
     }
-
     public static boolean isWifiSecure(Context context) {
         WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         try {

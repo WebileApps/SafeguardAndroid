@@ -357,7 +357,10 @@ public class SecurityChecker {
             if (activity.isFinishing() || activity.isDestroyed()) {
                 return;
             }
-
+            if (dialogQueue.isEmpty()) {
+                isShowingDialog = false;
+                return;
+            }
             isShowingDialog = true;
             SecurityDialogInfo dialogInfo = dialogQueue.remove(0);
 

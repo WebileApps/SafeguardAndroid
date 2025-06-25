@@ -54,7 +54,7 @@ allprojects {
 
 ```gradle
 dependencies {
-    implementation 'com.github.webileapps:safeguard:0.1.0'
+    implementation 'com.github.webileapps:safeguard:0.2.10'
 }
 ```
 

@@ -1,13 +1,14 @@
 package com.webileapps.safeguard;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Debug;
 import android.util.Log;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +21,12 @@ public class RootUtil {
     }
 
     public boolean isDeviceRooted() {
-        return isRunningOnEmulator() || checkRootMethod1() || checkRootMethod2() || checkRootMethod3() ||
-               checkRootMethod4() || checkRootMethod5() || checkRootMethod6() || rootClockingCheck();
+        return isRunningOnEmulator() || isDeviceTampered() || checkRootMethod2() || checkRootMethod3() ||
+               checkRootMethod4() || checkRootMethod5() || checkRootMethod6() || rootClockingCheck()|| Debug.isDebuggerConnected()||isMagiskPresent();
     }
 
-    private boolean checkRootMethod1() {
+
+    private static boolean isDeviceTampered() {
         String buildTags = Build.TAGS;
         return buildTags != null && buildTags.contains("test-keys");
     }
@@ -95,14 +97,14 @@ public class RootUtil {
     private boolean checkRootMethod5() {
         Process process = null;
         try {
-            process = Runtime.getRuntime().exec("su");
+            process = Runtime.getRuntime().exec(new String[]{"/system/xbin/which", "su"});
             BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String output = in.readLine();
             return output != null;
-        } catch (Exception e) {
+        } catch ( Exception e) {
             Log.e("RootCheck", "Not rooted or su command failed", e);
             return false;
-        } finally {
+        }finally {
             if (process != null) {
                 process.destroy();
             }
@@ -141,7 +143,13 @@ public class RootUtil {
             "com.amphoras.hidemyroot",
             "com.amphoras.hidemyrootadfree",
             "com.formyhm.hiderootPremium",
-            "com.formyhm.hideroot"
+            "com.formyhm.hideroot",
+                "com.noshufou.android.su",
+                "eu.chainfire.supersu",
+                "com.koushikdutta.superuser",
+                "com.thirdparty.superuser",
+                "com.zachspong.temprootremovejb",
+                "com.ramdroid.appquarantine"
         };
 
         List<String> installedApps = getAllInstalledApps();
@@ -171,5 +179,46 @@ public class RootUtil {
         }
         return packageNames;
     }
+
+    public static boolean isMagiskPresent() {
+        String[] paths = {
+                "/sbin/magisk", "/data/adb/magisk", "/data/adb/modules"
+        };
+        for (String path : paths) {
+            if (new File(path).exists()) return true;
+        }
+        return false;
+    }
+
+    public static boolean isBootloaderUnlocked() {
+        try {
+            Process process = Runtime.getRuntime().exec("getprop ro.boot.verifiedbootstate");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String state = reader.readLine();
+            reader.close();
+
+            // Normally: "green" = locked, "orange"/"yellow"/"red" = unlocked or tampered
+            return state != null && !"green".equalsIgnoreCase(state.trim());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true; // Assume unsafe if check fails
+        }
+    }
+
+    public static boolean isBootloaderInsecure() {
+        String bootloader = Build.BOOTLOADER;
+        return bootloader != null && bootloader.toLowerCase().contains("unlock");
+    }
+
+    public static boolean isFastbootEnabled() {
+        return new File("/sys/class/android_usb/android0/f_fastboot").exists();
+    }
+
+    public static boolean isBootStateUntrusted() {
+        return isBootloaderUnlocked() || isDeviceTampered() ||isBootloaderInsecure() || isFastbootEnabled();
+    }
+
+
+
 
 }

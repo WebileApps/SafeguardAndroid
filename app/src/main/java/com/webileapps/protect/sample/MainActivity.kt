@@ -29,7 +29,7 @@ class MainActivity : AppActivity() {
                 SecurityChecker.SecurityCheckState.WARNING,  // developerOptionsCheck
                 SecurityChecker.SecurityCheckState.WARNING,  // malwareCheck
                 SecurityChecker.SecurityCheckState.WARNING,  // tamperingCheck
-                SecurityChecker.SecurityCheckState.WARNING,  // appSpoofingCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // appSpoofingCheck checks package name
                 SecurityChecker.SecurityCheckState.WARNING,  // networkSecurityCheck
                 SecurityChecker.SecurityCheckState.WARNING,  // screenSharingCheck
                 SecurityChecker.SecurityCheckState.WARNING,  // keyloggerCheck

@@ -127,17 +127,28 @@ public class FridaDetection {
         }
     }
 
+
+
     public boolean detectFridaDebugging() {
         boolean fridaServer = detectFridaServer();
         boolean fridaPort = detectFridaPort();
         boolean fridaLibrary = detectFridaLibrary();
         boolean fridaTracer = detectFridaTracer();
 
-        boolean detected = fridaServer || fridaPort || fridaLibrary || fridaTracer;
+        boolean detected = fridaServer || fridaPort || fridaLibrary || fridaTracer ;
         if (detected) {
             Log.e("Security>>>", "Frida detection result: Server=" + fridaServer + ", Port=" + fridaPort + ", Library=" + fridaLibrary + ", Tracer=" + fridaTracer);
         }
 
         return detected;
+    }
+
+    public static boolean isXposedPresent() {
+        try {
+            Class.forName("de.robv.android.xposed.XposedHelpers");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 }

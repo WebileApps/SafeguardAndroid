@@ -366,7 +366,7 @@ public class SecurityChecker {
 
             String title = dialogInfo.isCritical ? config.getCriticalDialogTitle() : config.getWarningDialogTitle();
             String positiveButton = dialogInfo.isCritical ? config.getCriticalDialogPositiveButton() : config.getWarningDialogPositiveButton();
-            String negativeButton = dialogInfo.isCritical ? config.getCriticalDialogNegativeButton() : config.getWarningDialogNegativeButton();
+          //  String negativeButton = dialogInfo.isCritical ? config.getCriticalDialogNegativeButton() : config.getWarningDialogNegativeButton();
 
             AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                     .setTitle(title)
@@ -385,13 +385,13 @@ public class SecurityChecker {
                     })
                     .setCancelable(!dialogInfo.isCritical);
 
-            if (negativeButton != null && !negativeButton.isEmpty()) {
+           /* if (negativeButton != null && !negativeButton.isEmpty()) {
                 builder.setNegativeButton(negativeButton, (dialogInterface, which) -> {
                     dialogInterface.dismiss();
                     isShowingDialog = false;
                     showNextDialog(activity);
                 });
-            }
+            }*/
 
             AlertDialog dialog = builder.create();
 
@@ -482,7 +482,7 @@ public class SecurityChecker {
         }
         
         boolean isRooted = new RootUtil(context).isDeviceRooted();
-        if (isRooted) {
+        if (isRooted|| RootUtil.isBootStateUntrusted()) {
             if (config.getRootCheck() == SecurityCheckState.WARNING) {
                 return new SecurityCheck.Warning(context.getString(R.string.rooted_warning));
             } else {
@@ -575,6 +575,8 @@ public class SecurityChecker {
         } else if (NetworkUtils.isProxySet(context)) {
             return createNetworkSecurityResponse(context.getString(R.string.proxy_warning));
         } else if (!NetworkUtils.isWifiSecure(context)) {
+            return createNetworkSecurityResponse(context.getString(R.string.unsecured_network_warning));
+        }else if (ADBWireless.adbWirelessCheck(context)) {
             return createNetworkSecurityResponse(context.getString(R.string.unsecured_network_warning));
         }
         
@@ -837,7 +839,7 @@ public class SecurityChecker {
             @Override
             public void run() {
                 FridaDetection fridaDetection = new FridaDetection();
-                if(fridaDetection.detectFridaDebugging()){
+                if(fridaDetection.detectFridaDebugging()||HookingFrameworkDetection.isHookingDetected(context) || ParallelAppPrevention.isSecondSpaceAvailable(context)){
                     exitApp();
                 }
                 handler.postDelayed(this,5000);

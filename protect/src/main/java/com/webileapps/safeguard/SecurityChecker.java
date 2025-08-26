@@ -320,7 +320,7 @@ public class SecurityChecker {
         boolean isCallActive = state == TelephonyManager.CALL_STATE_OFFHOOK || 
                              state == TelephonyManager.CALL_STATE_RINGING;
 
-        if (isCallActive) {
+        if (isCallActive && state ==2) {
             switch (config.getOngoingCallCheck()) {
                 case WARNING:
                     showSecurityDialog(

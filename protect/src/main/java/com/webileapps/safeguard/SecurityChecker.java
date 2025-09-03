@@ -838,7 +838,7 @@ public class SecurityChecker {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                FridaDetection fridaDetection = new FridaDetection();
+                FridaDetection fridaDetection = new FridaDetection(context);
                 if(fridaDetection.detectFridaDebugging()||HookingFrameworkDetection.isHookingDetected(context) || ParallelAppPrevention.isSecondSpaceAvailable(context)){
                     exitApp();
                 }

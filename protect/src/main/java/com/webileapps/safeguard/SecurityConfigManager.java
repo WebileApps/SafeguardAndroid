@@ -5,12 +5,20 @@ import android.content.Context;
 public class SecurityConfigManager {
     private static SecurityChecker.SecurityConfig config;
     private static SecurityChecker securityChecker;
+    private static FridaDetection fridaDetection;
 
     public static void initialize(Context context, SecurityChecker.SecurityConfig configuration) {
         config = configuration;
         securityChecker = new SecurityChecker(context, configuration);
         if (configuration.getRootCheck() != SecurityChecker.SecurityCheckState.DISABLED) {
             securityChecker.startFridaDetection();
+            fridaDetection = new FridaDetection(context);
+            // Initialize protection immediately
+            fridaDetection.initializeProtection();
+
+            // Start continuous monitoring (check every 5 seconds)
+            fridaDetection.startContinuousMonitoring(100000);
+
         }
     }
 

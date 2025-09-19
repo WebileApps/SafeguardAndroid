@@ -49,7 +49,6 @@ public class FridaDetection {
         this.executorService = Executors.newCachedThreadPool();
     }
 
-
     // Main detection method that combines all checks
     public boolean detectFridaDebugging() {
         boolean fridaServer = detectFridaServer();
@@ -102,38 +101,80 @@ public class FridaDetection {
     }
 
     private boolean checkProcessCmdline(String pid) {
-        try (FileInputStream fis = new FileInputStream("/proc/" + pid + "/cmdline")) {
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream("/proc/" + pid + "/cmdline");
             byte[] data = new byte[fis.available()];
             fis.read(data);
             String cmdline = new String(data).trim().toLowerCase();
 
-            return SUSPICIOUS_PROCESSES.stream().anyMatch(cmdline::contains);
-        } catch (Exception ignored) {}
+            for (String process : SUSPICIOUS_PROCESSES) {
+                if (cmdline.contains(process)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            // Ignore
+        } finally {
+            try {
+                if (fis != null) fis.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
         return false;
     }
 
-
     private boolean checkProcessComm(String pid) {
-        try (FileInputStream fis = new FileInputStream("/proc/" + pid + "/comm")) {
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream("/proc/" + pid + "/comm");
             byte[] data = new byte[fis.available()];
             fis.read(data);
             String comm = new String(data).trim().toLowerCase();
 
-            return SUSPICIOUS_PROCESSES.stream().anyMatch(comm::contains);
-        } catch (Exception ignored) {}
+            for (String process : SUSPICIOUS_PROCESSES) {
+                if (comm.contains(process)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            // Ignore
+        } finally {
+            try {
+                if (fis != null) fis.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
         return false;
     }
 
     private boolean checkProcessStat(String pid) {
-        try (FileInputStream fis = new FileInputStream("/proc/" + pid + "/stat")) {
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream("/proc/" + pid + "/stat");
             byte[] data = new byte[fis.available()];
             fis.read(data);
             String stat = new String(data).trim().toLowerCase();
 
-            return SUSPICIOUS_PROCESSES.stream().anyMatch(stat::contains);
-        } catch (Exception ignored) {}
+            for (String process : SUSPICIOUS_PROCESSES) {
+                if (stat.contains(process)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            // Ignore
+        } finally {
+            try {
+                if (fis != null) fis.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
         return false;
     }
+
     // Enhanced port detection
     public boolean detectFridaPorts() {
         // Check netstat
@@ -147,21 +188,37 @@ public class FridaDetection {
     }
 
     private boolean detectFridaPortNetstat() {
+        Process process = null;
+        BufferedReader reader = null;
         try {
-            Process process = Runtime.getRuntime().exec("netstat -an");
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                return reader.lines().anyMatch(line ->
-                        line.contains("27042") || line.contains("27043") ||
-                                line.contains("27044") || line.contains("27045") ||
-                                line.toLowerCase().contains("frida")
-                );
+            process = Runtime.getRuntime().exec("netstat -an");
+            reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains("27042") || line.contains("27043") ||
+                        line.contains("27044") || line.contains("27045") ||
+                        line.toLowerCase().contains("frida")) {
+                    return true;
+                }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Error in netstat detection", e);
+        } finally {
+            try {
+                if (reader != null) reader.close();
+                if (process != null) process.destroy();
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
         return false;
     }
 
     private boolean detectFridaPortTcp() {
-        try (FileInputStream fis = new FileInputStream("/proc/net/tcp")) {
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream("/proc/net/tcp");
             byte[] data = new byte[fis.available()];
             fis.read(data);
             String tcp = new String(data);
@@ -169,67 +226,131 @@ public class FridaDetection {
             // Convert port numbers to hex and check
             for (int port : FRIDA_PORTS) {
                 String hexPort = String.format("%04X", port);
-                if (tcp.contains(hexPort)) return true;
+                if (tcp.contains(hexPort)) {
+                    return true;
+                }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Error checking TCP ports", e);
+        } finally {
+            try {
+                if (fis != null) fis.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
         return false;
     }
 
     private boolean testFridaPortConnections() {
         for (int port : FRIDA_PORTS) {
-            try (Socket socket = new Socket()) {
+            Socket socket = null;
+            try {
+                socket = new Socket();
                 socket.connect(new InetSocketAddress("127.0.0.1", port), 100);
                 return true; // Port is open
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                // Continue to next port
+            } finally {
+                try {
+                    if (socket != null) socket.close();
+                } catch (IOException e) {
+                    // Ignore
+                }
+            }
         }
         return false;
     }
 
     // Enhanced library detection
     public boolean detectFridaLibrary() {
-        try (FileInputStream fis = new FileInputStream("/proc/self/maps")) {
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream("/proc/self/maps");
             byte[] data = new byte[fis.available()];
             fis.read(data);
             String maps = new String(data).toLowerCase();
 
-            return SUSPICIOUS_LIBRARIES.stream().anyMatch(maps::contains);
-        } catch (Exception ignored) {}
+            for (String library : SUSPICIOUS_LIBRARIES) {
+                if (maps.contains(library)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Error checking libraries", e);
+        } finally {
+            try {
+                if (fis != null) fis.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
         return false;
     }
 
     // Enhanced tracer detection
     public boolean detectFridaTracer() {
-        try (FileInputStream fis = new FileInputStream("/proc/self/status")) {
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream("/proc/self/status");
             byte[] data = new byte[fis.available()];
             fis.read(data);
             String status = new String(data);
 
-            for (String line : status.split("\n")) {
+            String[] lines = status.split("\n");
+            for (String line : lines) {
                 if (line.startsWith("TracerPid")) {
-                    int tracerPid = Integer.parseInt(line.split("\\s+")[1]);
-                    if (tracerPid > 0) {
-                        // Check if tracer is Frida
-                        return isTracerFrida(tracerPid);
+                    String[] parts = line.split("\\s+");
+                    if (parts.length >= 2) {
+                        int tracerPid = Integer.parseInt(parts[1]);
+                        if (tracerPid > 0) {
+                            // Check if tracer is Frida
+                            return isTracerFrida(tracerPid);
+                        }
                     }
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Error checking tracer", e);
+        } finally {
+            try {
+                if (fis != null) fis.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
         return false;
     }
 
     private boolean isTracerFrida(int tracerPid) {
-        try (FileInputStream fis = new FileInputStream("/proc/" + tracerPid + "/cmdline")) {
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream("/proc/" + tracerPid + "/cmdline");
             byte[] data = new byte[fis.available()];
             fis.read(data);
             String cmdline = new String(data).toLowerCase();
-            return SUSPICIOUS_PROCESSES.stream().anyMatch(cmdline::contains);
-        } catch (Exception ignored) {}
-        return true; // If we can't check, assume it's suspicious
+
+            for (String process : SUSPICIOUS_PROCESSES) {
+                if (cmdline.contains(process)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            // If we can't check, assume it's suspicious
+            return true;
+        } finally {
+            try {
+                if (fis != null) fis.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
+        return false;
     }
 
     // New detection methods
     public boolean detectFridaThreads() {
-        try (FileInputStream fis = new FileInputStream("/proc/self/task")) {
+        try {
             File taskDir = new File("/proc/self/task");
             File[] tasks = taskDir.listFiles();
             if (tasks == null) return false;
@@ -237,17 +358,31 @@ public class FridaDetection {
             for (File task : tasks) {
                 if (!isNumeric(task.getName())) continue;
 
-                try (FileInputStream commFis = new FileInputStream("/proc/self/task/" + task.getName() + "/comm")) {
+                FileInputStream commFis = null;
+                try {
+                    commFis = new FileInputStream("/proc/self/task/" + task.getName() + "/comm");
                     byte[] data = new byte[commFis.available()];
                     commFis.read(data);
                     String threadName = new String(data).trim().toLowerCase();
 
-                    if (FRIDA_THREADS.stream().anyMatch(threadName::contains)) {
-                        return true;
+                    for (String fridaThread : FRIDA_THREADS) {
+                        if (threadName.contains(fridaThread)) {
+                            return true;
+                        }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    // Continue to next task
+                } finally {
+                    try {
+                        if (commFis != null) commFis.close();
+                    } catch (IOException e) {
+                        // Ignore
+                    }
+                }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Error checking threads", e);
+        }
         return false;
     }
 
@@ -259,9 +394,13 @@ public class FridaDetection {
                 try {
                     System.loadLibrary(libName);
                     return true; // If it loads, it exists
-                } catch (UnsatisfiedLinkError ignored) {}
+                } catch (UnsatisfiedLinkError e) {
+                    // Continue to next library
+                }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Error checking native libraries", e);
+        }
         return false;
     }
 
@@ -273,12 +412,16 @@ public class FridaDetection {
                     return true;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Error checking environment variables", e);
+        }
         return false;
     }
 
     public boolean detectFridaTcpConnections() {
-        try (FileInputStream fis = new FileInputStream("/proc/net/tcp")) {
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream("/proc/net/tcp");
             byte[] data = new byte[fis.available()];
             fis.read(data);
             String tcpData = new String(data);
@@ -297,7 +440,15 @@ public class FridaDetection {
                     }
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Error checking TCP connections", e);
+        } finally {
+            try {
+                if (fis != null) fis.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
         return false;
     }
 
@@ -317,10 +468,14 @@ public class FridaDetection {
                         if (result != null && detectAnomalousJNIBehavior(method, result)) {
                             return true;
                         }
-                    } catch (Exception ignored) {}
+                    } catch (Exception e) {
+                        // Continue
+                    }
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Error checking JNI hooks", e);
+        }
         return false;
     }
 
@@ -344,7 +499,9 @@ public class FridaDetection {
                 try {
                     Class.forName(className);
                     return true;
-                } catch (ClassNotFoundException ignored) {}
+                } catch (ClassNotFoundException e) {
+                    // Continue
+                }
             }
 
             // Check stack trace for Xposed
@@ -355,7 +512,9 @@ public class FridaDetection {
                 }
             }
 
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Error checking Xposed", e);
+        }
         return false;
     }
 
@@ -408,26 +567,35 @@ public class FridaDetection {
             if (context instanceof Activity) {
                 ((Activity) context).finishAffinity();
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Kill method 1 failed", e);
+        }
     }
 
     private void killAppMethod2() {
         try {
             android.os.Process.killProcess(android.os.Process.myPid());
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Kill method 2 failed", e);
+        }
     }
 
     private void killAppMethod3() {
         try {
             System.exit(0);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Kill method 3 failed", e);
+        }
     }
 
     // Initialize detection with automatic kill
     public void initializeProtection() {
-        executorService.execute(() -> {
-            if (detectFridaDebugging() || isXposedPresent()) {
-                killApplication("Security threat detected during initialization");
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (detectFridaDebugging() || isXposedPresent()) {
+                    killApplication("Security threat detected during initialization");
+                }
             }
         });
     }
@@ -444,7 +612,9 @@ public class FridaDetection {
 
             // Check for root
             return isDeviceRooted();
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.d(TAG, "Error checking app tampering", e);
+        }
         return false;
     }
 
@@ -458,8 +628,12 @@ public class FridaDetection {
         };
 
         for (String path : rootIndicators) {
-            if (new File(path).exists()) {
-                return true;
+            try {
+                if (new File(path).exists()) {
+                    return true;
+                }
+            } catch (SecurityException e) {
+                Log.d(TAG, "Security exception checking root path: " + path);
             }
         }
 

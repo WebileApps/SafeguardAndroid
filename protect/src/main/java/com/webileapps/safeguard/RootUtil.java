@@ -6,6 +6,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Debug;
 import android.util.Log;
+import android.widget.Toast;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -25,7 +27,7 @@ public class RootUtil {
 
     public boolean isDeviceRooted() {
         try {
-            return isRunningOnEmulator() ||
+                return isRunningOnEmulator() ||
                     isDeviceTampered() ||
                     checkRootMethod2() ||
                     checkRootMethod3() ||
@@ -37,7 +39,8 @@ public class RootUtil {
                     isMagiskPresent() ||
                     checkAdvancedMagiskDetection() ||
                     checkKernelModules() ||
-                    checkMountPoints() ||
+                  //  checkMountPoints() ||
+                        checkSuspiciousMounts()||
                     checkSystemProperties() ||
                     checkProcessList() ||
                     checkLibraryHooks() ||
@@ -301,7 +304,7 @@ public class RootUtil {
         }
     }
 
-    private boolean checkMountPoints() {
+  /*  private boolean checkMountPoints() {
         try {
             // Check /proc/mounts for suspicious mount points
             File procMounts = new File("/proc/mounts");
@@ -316,6 +319,7 @@ public class RootUtil {
                         // Check if it's a suspicious mount
                         if (isSuspiciousMount(line)) {
                             reader.close();
+                            Toast.makeText(context,"Check Mount Points",Toast.LENGTH_LONG).show();
                             return true;
                         }
                     }
@@ -326,14 +330,60 @@ public class RootUtil {
         } catch (Exception e) {
             return false;
         }
+    }*/
+
+    private boolean checkSuspiciousMounts() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("/proc/mounts"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains("magisk")) { // <-- only strong evidence
+                    return true;
+                }
+            }
+        } catch (Exception ignored) {}
+        return false;
+    }
+    private boolean checkMountPoints() {
+        try {
+            File procMounts = new File("/proc/mounts");
+            if (procMounts.exists()) {
+                BufferedReader reader = new BufferedReader(new FileReader(procMounts));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    // Only flag strong root indicators
+                    if (line.contains("magisk") || line.contains("su") || line.contains("/magisk")) {
+                        reader.close();
+                        Toast.makeText(context, "Check Mount Points", Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+                }
+                reader.close();
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
-    private boolean isSuspiciousMount(String mountLine) {
+    private boolean isSuspiciousMount(String line) {
+        // Ignore normal Android mounts
+        if (line.startsWith("rootfs") && line.contains("rootfs / rootfs")) {
+            return false;
+        }
+        if (line.contains("tmpfs /sbin") && !line.contains("magisk")) {
+            return false;
+        }
+        // Anything else you consider bad
+        return true;
+    }
+
+
+  /*  private boolean isSuspiciousMount(String mountLine) {
         // Analyze mount line for suspicious patterns
         return mountLine.contains("tmpfs /sbin") ||
                 mountLine.contains("magisk") ||
                 (mountLine.contains("/sbin") && mountLine.contains("rw"));
-    }
+    }*/
 
     private boolean checkSystemProperties() {
         try {
@@ -846,6 +896,10 @@ public class RootUtil {
 
     public static boolean isBootStateUntrusted() {
         try {
+            boolean isBootloaderUnlocked = isBootloaderUnlocked();
+            boolean isBootloaderInsecure = isBootloaderInsecure();
+            boolean isFastbootEnabled = isFastbootEnabled();
+            boolean isDeviceTampered = isDeviceTampered();
             return isBootloaderUnlocked() ||
                     isDeviceTampered() ||
                     isBootloaderInsecure() ||

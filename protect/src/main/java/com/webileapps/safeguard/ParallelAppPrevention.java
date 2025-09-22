@@ -56,10 +56,10 @@ public class ParallelAppPrevention {
     }
 
     public static boolean isSecondSpaceAvailable(Context context) {
-        return isAppCloned(context)
+           return isAppCloned(context)
                 || isClonedByPath(context)
                 || isClonerInstalled(context)
-                || detectMultipleUsers(context)
+              //  || detectMultipleUsers(context)
                 || detectCloneByFilePath(context);
     }
 }

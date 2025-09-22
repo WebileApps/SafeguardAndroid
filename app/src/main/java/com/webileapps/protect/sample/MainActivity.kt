@@ -25,16 +25,16 @@ class MainActivity : AppActivity() {
         SecurityConfigManager.initialize(
             this,
             SecurityChecker.SecurityConfig(
-                SecurityChecker.SecurityCheckState.WARNING,  // rootCheck
-                SecurityChecker.SecurityCheckState.WARNING,  // developerOptionsCheck
-                SecurityChecker.SecurityCheckState.WARNING,  // malwareCheck
-                SecurityChecker.SecurityCheckState.WARNING,  // tamperingCheck
-                SecurityChecker.SecurityCheckState.WARNING,  // appSpoofingCheck checks package name
-                SecurityChecker.SecurityCheckState.WARNING,  // networkSecurityCheck
-                SecurityChecker.SecurityCheckState.WARNING,  // screenSharingCheck
-                SecurityChecker.SecurityCheckState.WARNING,  // keyloggerCheck
-                SecurityChecker.SecurityCheckState.WARNING,  // appSignatureCheck
-                SecurityChecker.SecurityCheckState.WARNING,  // ongoingCallCheck
+                SecurityChecker.SecurityCheckState.ERROR,  // rootCheck
+                SecurityChecker.SecurityCheckState.ERROR,  // developerOptionsCheck
+                SecurityChecker.SecurityCheckState.ERROR,  // malwareCheck
+                SecurityChecker.SecurityCheckState.ERROR,  // tamperingCheck
+                SecurityChecker.SecurityCheckState.ERROR,  // appSpoofingCheck checks package name
+                SecurityChecker.SecurityCheckState.ERROR,  // networkSecurityCheck
+                SecurityChecker.SecurityCheckState.ERROR,  // screenSharingCheck
+                SecurityChecker.SecurityCheckState.ERROR,  // keyloggerCheck
+                SecurityChecker.SecurityCheckState.ERROR,  // appSignatureCheck
+                SecurityChecker.SecurityCheckState.ERROR,  // ongoingCallCheck
                 "com.webileapps.protect.sample",            // expectedPackageName
                 "2A36434023EECADABE4F43B09C4BF95AB2594256BD0A2577424B85BC2C6E0CBB", // expectedSignature
                 "Critical Alert!",                          // criticalDialogTitle

@@ -482,7 +482,7 @@ public class SecurityChecker {
         }
         
         boolean isRooted = new RootUtil(context).isDeviceRooted();
-        if (isRooted|| RootUtil.isBootStateUntrusted()) {
+        if ( RootUtil.isBootStateUntrusted()) {
             if (config.getRootCheck() == SecurityCheckState.WARNING) {
                 return new SecurityCheck.Warning(context.getString(R.string.rooted_warning));
             } else {

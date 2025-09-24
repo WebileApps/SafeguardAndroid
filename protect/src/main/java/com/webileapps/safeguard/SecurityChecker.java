@@ -21,6 +21,8 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.WindowManager;
+
 import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -402,7 +404,11 @@ public class SecurityChecker {
                 }
             });
 
-            dialog.show();
+            try {
+                dialog.show();
+            }catch (WindowManager.BadTokenException ignore){
+
+            }
         });
     }
 

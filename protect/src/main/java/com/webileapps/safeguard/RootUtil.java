@@ -699,7 +699,18 @@ public class RootUtil {
             reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String output = reader.readLine();
             // Wait for process to complete with timeout
-            boolean finished = process.waitFor(3, java.util.concurrent.TimeUnit.SECONDS);
+            boolean finished;
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    finished = process.waitFor(3, java.util.concurrent.TimeUnit.SECONDS);
+                }else{
+                    int exitCode = process.waitFor();
+                    finished = (exitCode == 0);
+                }
+            }catch (InterruptedException e){
+                Thread.currentThread().interrupt();
+                finished = false;
+            }
             if (!finished) {
                 process.destroyForcibly();
                 return false;
@@ -707,10 +718,7 @@ public class RootUtil {
             return output != null && !output.trim().isEmpty();
         } catch (IOException e) {
             return false;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return false;
-        } catch (Exception e) {
+        }  catch (Exception e) {
             return false;
         } finally {
             try {

@@ -488,7 +488,8 @@ public class SecurityChecker {
         }
         
         boolean isRooted = new RootUtil(context).isDeviceRooted();
-        if ( RootUtil.isBootStateUntrusted()) {
+        boolean isMagiskPresent = new AdvancedMagiskDetection(context).detectMagiskWithDenyList();
+        if ( RootUtil.isBootStateUntrusted()&&isRooted&&isMagiskPresent) {
             if (config.getRootCheck() == SecurityCheckState.WARNING) {
                 return new SecurityCheck.Warning(context.getString(R.string.rooted_warning));
             } else {

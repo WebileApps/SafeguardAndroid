@@ -26,14 +26,14 @@ class MainActivity : AppActivity() {
             this,
             SecurityChecker.SecurityConfig(
                 SecurityChecker.SecurityCheckState.ERROR,  // rootCheck
-                SecurityChecker.SecurityCheckState.ERROR,  // developerOptionsCheck
+                SecurityChecker.SecurityCheckState.DISABLED,  // developerOptionsCheck
                 SecurityChecker.SecurityCheckState.ERROR,  // malwareCheck
                 SecurityChecker.SecurityCheckState.ERROR,  // tamperingCheck
-                SecurityChecker.SecurityCheckState.ERROR,  // appSpoofingCheck checks package name
-                SecurityChecker.SecurityCheckState.ERROR,  // networkSecurityCheck
+                SecurityChecker.SecurityCheckState.DISABLED,  // appSpoofingCheck checks package name
+                SecurityChecker.SecurityCheckState.DISABLED,  // networkSecurityCheck
                 SecurityChecker.SecurityCheckState.ERROR,  // screenSharingCheck
                 SecurityChecker.SecurityCheckState.ERROR,  // keyloggerCheck
-                SecurityChecker.SecurityCheckState.ERROR,  // appSignatureCheck
+                SecurityChecker.SecurityCheckState.DISABLED,  // appSignatureCheck
                 SecurityChecker.SecurityCheckState.ERROR,  // ongoingCallCheck
                 "com.webileapps.protect.sample",            // expectedPackageName
                 "2A36434023EECADABE4F43B09C4BF95AB2594256BD0A2577424B85BC2C6E0CBB", // expectedSignature

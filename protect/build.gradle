@@ -57,7 +57,7 @@ afterEvaluate {
 
                 groupId = 'com.github.webileapps'
                 artifactId = 'safeguard'
-                version = '0.2.16'
+                version = '0.2.17'
 
                 pom {
                     name = 'Safeguard'

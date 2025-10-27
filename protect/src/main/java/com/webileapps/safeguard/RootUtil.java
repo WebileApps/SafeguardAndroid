@@ -866,7 +866,7 @@ public class RootUtil {
             Thread.currentThread().interrupt();
             return false;
         } catch (Exception e) {
-            return true; // Assume unsafe if check fails
+            return false; // Assume unsafe if check fails
         } finally {
             try {
                 if (reader != null) {

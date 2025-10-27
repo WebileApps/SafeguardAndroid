@@ -864,7 +864,7 @@ public class RootUtil {
             return true; // Assume unsafe if check fails
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return true;
+            return false;
         } catch (Exception e) {
             return true; // Assume unsafe if check fails
         } finally {

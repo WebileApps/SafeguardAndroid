@@ -861,7 +861,7 @@ public class RootUtil {
             // Normally: "green" = locked, "orange"/"yellow"/"red" = unlocked or tampered
             return state != null && !"green".equalsIgnoreCase(state.trim());
         } catch (IOException e) {
-            return true; // Assume unsafe if check fails
+            return false; // Assume unsafe if check fails
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return false;

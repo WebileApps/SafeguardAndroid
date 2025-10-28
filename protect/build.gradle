@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.github.webileapps'
-version = '0.2.18'
+version = '0.2.19'
 
 android {
     namespace 'com.webileapps.safeguard'

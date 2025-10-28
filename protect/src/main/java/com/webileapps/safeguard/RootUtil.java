@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 public class RootUtil {
-    private final Context context;
+    private static Context context;
 
     public RootUtil(Context context) {
         this.context = context;
@@ -559,6 +559,9 @@ public class RootUtil {
     private static boolean isDeviceTampered() {
         try {
             String buildTags = Build.TAGS;
+            if(buildTags.contains("test-keys")){
+                CyberUtils.showToast(context,"Device Tampered");
+            }
             return buildTags != null && buildTags.contains("test-keys");
 
         } catch (Exception e) {
@@ -601,7 +604,6 @@ public class RootUtil {
             String device = Build.DEVICE;
             String model = Build.MODEL;
             String product = Build.PRODUCT;
-
             return (brand != null && brand.startsWith("generic")) ||
                     (device != null && device.startsWith("generic")) ||
                     (model != null && model.contains("google_sdk")) ||
@@ -913,7 +915,7 @@ public class RootUtil {
                     isBootloaderInsecure() ||
                     isFastbootEnabled();
         } catch (Exception e) {
-            return true; // Assume unsafe if we can't check
+            return false; // Assume unsafe if we can't check
         }
     }
 }

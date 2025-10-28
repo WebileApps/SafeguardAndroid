@@ -25,8 +25,8 @@ class MainActivity : AppActivity() {
         SecurityConfigManager.initialize(
             this,
             SecurityChecker.SecurityConfig(
-                SecurityChecker.SecurityCheckState.ERROR,  // rootCheck
-                SecurityChecker.SecurityCheckState.DISABLED,  // developerOptionsCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // rootCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // developerOptionsCheck
                 SecurityChecker.SecurityCheckState.ERROR,  // malwareCheck
                 SecurityChecker.SecurityCheckState.ERROR,  // tamperingCheck
                 SecurityChecker.SecurityCheckState.DISABLED,  // appSpoofingCheck checks package name

@@ -486,8 +486,32 @@ public class SecurityChecker {
         if (config.getRootCheck() == SecurityCheckState.DISABLED) {
             return new SecurityCheck.Success();
         }
-        
-        boolean isRooted = new RootUtil(context).isDeviceRooted();
+        SecurityCheckActivity securityCheck = new SecurityCheckActivity(context);
+        securityCheck.performSecurityCheck(result -> {
+
+            if (result.isDeviceCompromised()||result.isEmulator) {
+                // Custom action: disable sensitive features
+                if (config.getRootCheck() == SecurityCheckState.WARNING) {
+                    showSecurityDialog(
+                            context,
+                            context.getString(R.string.rooted_warning),
+                            false,
+                            userAcknowledged -> {}
+                    );
+                } else {
+                    showSecurityDialog(
+                            context,
+                            context.getString(R.string.rooted_critical),
+                            true,
+                            null
+                    );
+                }
+            } else {
+                // Enable all features
+              //  enableAllFeatures();
+            }
+        });
+       /* boolean isRooted = new RootUtil(context).isDeviceRooted();
         boolean isMagiskPresent = new AdvancedMagiskDetection(context).detectMagiskWithDenyList();
         if ( RootUtil.isBootStateUntrusted()||isRooted||isMagiskPresent) {
             if (config.getRootCheck() == SecurityCheckState.WARNING) {
@@ -495,9 +519,11 @@ public class SecurityChecker {
             } else {
                 return new SecurityCheck.Critical(context.getString(R.string.rooted_critical));
             }
-        }
+        }*/
         return new SecurityCheck.Success();
     }
+
+
 
     public SecurityCheck checkDeveloperOptions() {
         if (config.getDeveloperOptionsCheck() == SecurityCheckState.DISABLED) {

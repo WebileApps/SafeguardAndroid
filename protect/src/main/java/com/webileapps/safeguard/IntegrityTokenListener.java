@@ -1,5 +1,6 @@
 package com.webileapps.safeguard;
 
 public interface IntegrityTokenListener {
-    public void onIntegrityTokenReceived(String token);
+    public void onIntegrityTokenSuccess(String token,String nonce);
+    public void onIntegrityTokenFailure(Exception exception);
 }

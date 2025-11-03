@@ -889,14 +889,14 @@ public class SecurityChecker {
 
     public void deviceIntegrity(IntegrityTokenListener integrityTokenListener){
         IntegrityHelper integrityHelper = new IntegrityHelper(context);
-        integrityHelper.requestIntegrity((token, error) ->{
+        integrityHelper.requestIntegrity((token, error,nonce) ->{
             if (error != null) {
                 Log.e("Integrity", "Error: " + error);
-                integrityTokenListener.onIntegrityTokenReceived("");
+                integrityTokenListener.onIntegrityTokenFailure(error);
                 return;  // because Java Lambda must return something
             }
            // Log.e("Integrity>>", "Token::: " + token);
-            integrityTokenListener.onIntegrityTokenReceived(token);
+            integrityTokenListener.onIntegrityTokenSuccess(token,nonce);
 
         });
 

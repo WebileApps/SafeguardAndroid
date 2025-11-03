@@ -13,6 +13,7 @@ import com.webileapps.safeguard.SecurityConfigManager
 import com.webileapps.safeguard.CyberUtils
 import com.webileapps.protect.sample.databinding.ActivityMainBinding
 import com.webileapps.safeguard.IntegrityTokenListener
+import java.lang.Exception
 
 
 class MainActivity : AppActivity() {
@@ -61,8 +62,15 @@ class MainActivity : AppActivity() {
             // Handle permission denied
         }
 
-        securityChecker.deviceIntegrity( IntegrityTokenListener{
-            Toast.makeText(this@MainActivity, it, Toast.LENGTH_SHORT).show()
+        securityChecker.deviceIntegrity( object :IntegrityTokenListener{
+            override fun onIntegrityTokenSuccess(token: String?, nonce: String?) {
+                Toast.makeText(this@MainActivity, "Token:: $token\nNonce:: $nonce", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onIntegrityTokenFailure(exception: Exception?) {
+                Toast.makeText(this@MainActivity, "Exception:: $exception", Toast.LENGTH_SHORT).show()
+            }
+
         })
 
 

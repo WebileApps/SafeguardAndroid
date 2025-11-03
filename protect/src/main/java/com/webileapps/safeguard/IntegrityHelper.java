@@ -15,7 +15,7 @@ public class IntegrityHelper {
     private final IntegrityManager integrityManager;
 
     public interface IntegrityCallback {
-        void onResult(String token, Exception error);
+        void onResult(String token, Exception error, String nonce);
     }
 
     public IntegrityHelper(Context context) {
@@ -34,13 +34,13 @@ public class IntegrityHelper {
             integrityManager.requestIntegrityToken(request)
                     .addOnSuccessListener(response -> {
                         String integrityToken = response.token();
-                        callback.onResult(integrityToken, null);
+                        callback.onResult(integrityToken, null, nonce);
                     })
                     .addOnFailureListener(exception -> {
-                        callback.onResult(null, exception);
+                        callback.onResult(null, exception, nonce);
                     });
         }catch (Exception e){
-            callback.onResult(null, e);
+            callback.onResult(null, e, null);
         }
     }
 

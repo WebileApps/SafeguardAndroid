@@ -893,7 +893,7 @@ public class SecurityChecker {
         System.exit(0);
     }
 
-    private void deviceIntegrity(String url){
+    public void deviceIntegrity(String url){
         IntegrityHelper integrityHelper = new IntegrityHelper(context);
         integrityHelper.requestIntegrity((token, error) ->{
             if (error != null) {

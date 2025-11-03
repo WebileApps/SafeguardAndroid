@@ -61,6 +61,8 @@ class MainActivity : AppActivity() {
             // Handle permission denied
         }
 
+        securityChecker.deviceIntegrity("")
+
 
         generateToken()
 

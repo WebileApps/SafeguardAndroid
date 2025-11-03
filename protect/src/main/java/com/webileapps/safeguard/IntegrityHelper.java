@@ -24,20 +24,24 @@ public class IntegrityHelper {
     }
 
     public void requestIntegrity(IntegrityCallback callback) {
-        String nonce = generateNonce();
+        try {
+            String nonce = generateNonce();
 
-        IntegrityTokenRequest request = IntegrityTokenRequest.builder()
-                .setNonce(nonce)
-                .build();
+            IntegrityTokenRequest request = IntegrityTokenRequest.builder()
+                    .setNonce(nonce)
+                    .build();
 
-        integrityManager.requestIntegrityToken(request)
-                .addOnSuccessListener(response -> {
-                    String integrityToken = response.token();
-                    callback.onResult(integrityToken, null);
-                })
-                .addOnFailureListener(exception -> {
-                    callback.onResult(null, exception);
-                });
+            integrityManager.requestIntegrityToken(request)
+                    .addOnSuccessListener(response -> {
+                        String integrityToken = response.token();
+                        callback.onResult(integrityToken, null);
+                    })
+                    .addOnFailureListener(exception -> {
+                        callback.onResult(null, exception);
+                    });
+        }catch (Exception e){
+            callback.onResult(null, e);
+        }
     }
 
     private String generateNonce() {

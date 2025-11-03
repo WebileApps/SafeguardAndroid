@@ -22,18 +22,32 @@ import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
+
+
+import com.webileapps.safeguard.retrofit.RetrofitClient;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SecurityChecker {
     private final Context context;
@@ -511,19 +525,8 @@ public class SecurityChecker {
               //  enableAllFeatures();
             }
         });
-       /* boolean isRooted = new RootUtil(context).isDeviceRooted();
-        boolean isMagiskPresent = new AdvancedMagiskDetection(context).detectMagiskWithDenyList();
-        if ( RootUtil.isBootStateUntrusted()||isRooted||isMagiskPresent) {
-            if (config.getRootCheck() == SecurityCheckState.WARNING) {
-                return new SecurityCheck.Warning(context.getString(R.string.rooted_warning));
-            } else {
-                return new SecurityCheck.Critical(context.getString(R.string.rooted_critical));
-            }
-        }*/
         return new SecurityCheck.Success();
     }
-
-
 
     public SecurityCheck checkDeveloperOptions() {
         if (config.getDeveloperOptionsCheck() == SecurityCheckState.DISABLED) {
@@ -889,5 +892,81 @@ public class SecurityChecker {
         }
         System.exit(0);
     }
+
+    private void deviceIntegrity(String url){
+        IntegrityHelper integrityHelper = new IntegrityHelper(context);
+        integrityHelper.requestIntegrity((token, error) ->{
+            if (error != null) {
+                Log.e("Integrity", "Error: " + error.getMessage());
+                return;  // because Java Lambda must return something
+            }
+            sendTokenToServer(token,url);
+           // return null;
+        });
+
+      /*  Log.e("Integrity", "Token: " + token));
+        new IntegrityHelper(context).requestIntegrity((token, error) -> {
+
+            if (error != null) {
+                Log.e("Integrity", "Error: " + error.getMessage());
+                return null;  // because Java Lambda must return something
+            }
+            sendTokenToServer(token);
+            return null;
+        });
+*/    }
+
+    private void sendTokenToServer(String token,String url) {
+
+       RetrofitClient.getApi(url).verifyIntegrity(token)
+                .enqueue(new Callback<ResponseBody>() {
+
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+
+                        if (response.isSuccessful()) {
+                            try {
+                                String res = response.body().string();
+
+                                Log.e("Integrity>>>", "Server Response: " + res);
+                            } catch (Exception e) {
+                                try {
+                                    assert response.errorBody() != null;
+                                    JSONObject jsonObject= new JSONObject(response.errorBody().string());
+                                    JSONObject detailsObject= jsonObject.getJSONObject("details");
+                                    JSONObject deviceIntegrityObject= detailsObject.getJSONObject("device_integrity");
+
+                                   if(!deviceIntegrityObject.getBoolean("meets_device_integrity")) {
+                                       showSecurityDialog(
+                                               context,
+                                               context.getString(R.string.rooted_critical),
+                                               true,
+                                               null
+                                       );
+                                   }
+                                   // Toast.makeText(context, ""+deviceIntegrityObject.getBoolean("meets_device_integrity"), Toast.LENGTH_SHORT).show();
+
+
+                                } catch (JSONException ex) {
+                                    throw new RuntimeException(ex);
+                                } catch (IOException ex) {
+                                    throw new RuntimeException(ex);
+                                }
+                                Log.e("Integrity>>>", "Parse Error: " + e.getMessage());
+                            }
+
+                        } else {
+                            Log.e("Integrity>>>", "Server Error: " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Log.e("Integrity>>>", "Network Error: " + t.getMessage());
+                    }
+                });
+    }
+
+
 
 }

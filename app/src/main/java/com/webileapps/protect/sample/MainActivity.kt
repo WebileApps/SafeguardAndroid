@@ -3,13 +3,17 @@ package com.webileapps.protect.sample
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
+import com.google.android.play.core.integrity.IntegrityManagerFactory
+import com.google.android.play.core.integrity.IntegrityTokenRequest
 import com.webileapps.safeguard.AppActivity
 import com.webileapps.safeguard.NetworkChangeReceiver
 import com.webileapps.safeguard.SecurityChecker
 import com.webileapps.safeguard.SecurityConfigManager
 import com.webileapps.safeguard.CyberUtils
 import com.webileapps.protect.sample.databinding.ActivityMainBinding
+import java.security.SecureRandom
 
 class MainActivity : AppActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -25,7 +29,7 @@ class MainActivity : AppActivity() {
         SecurityConfigManager.initialize(
             this,
             SecurityChecker.SecurityConfig(
-                SecurityChecker.SecurityCheckState.ERROR,  // rootCheck
+                SecurityChecker.SecurityCheckState.WARNING,  // rootCheck
                 SecurityChecker.SecurityCheckState.DISABLED,  // developerOptionsCheck
                 SecurityChecker.SecurityCheckState.ERROR,  // malwareCheck
                 SecurityChecker.SecurityCheckState.ERROR,  // tamperingCheck
@@ -57,8 +61,38 @@ class MainActivity : AppActivity() {
             // Handle permission denied
         }
 
+
+        generateToken()
+
         setupButtons()
     }
+
+    fun generateNonce(): String? {
+        val nonce = ByteArray(32)
+        SecureRandom().nextBytes(nonce)
+
+        return Base64.encodeToString(
+            nonce,
+            Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
+        )
+    }
+
+    private fun generateToken() {
+        val nonce = generateNonce()
+        IntegrityManagerFactory.create(applicationContext)
+            .requestIntegrityToken(
+                IntegrityTokenRequest.builder()
+                    .setNonce(nonce)
+                    .build()
+            )
+            .addOnSuccessListener { response ->
+                Log.e("PI>>>", "Integrity Token: ${response.token()}")
+            }
+            .addOnFailureListener { e ->
+                Log.e("PI>>>", "Integrity failed: ${e.message}")
+            }
+    }
+
 
     private fun setupButtons() {
         binding.btnCheckRoot.setOnClickListener { 

@@ -5,15 +5,15 @@ import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
-import com.google.android.play.core.integrity.IntegrityManagerFactory
-import com.google.android.play.core.integrity.IntegrityTokenRequest
+import android.widget.Toast
 import com.webileapps.safeguard.AppActivity
 import com.webileapps.safeguard.NetworkChangeReceiver
 import com.webileapps.safeguard.SecurityChecker
 import com.webileapps.safeguard.SecurityConfigManager
 import com.webileapps.safeguard.CyberUtils
 import com.webileapps.protect.sample.databinding.ActivityMainBinding
-import java.security.SecureRandom
+import com.webileapps.safeguard.IntegrityTokenListener
+
 
 class MainActivity : AppActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -61,38 +61,12 @@ class MainActivity : AppActivity() {
             // Handle permission denied
         }
 
-        securityChecker.deviceIntegrity("")
+        securityChecker.deviceIntegrity( IntegrityTokenListener{
+            Toast.makeText(this@MainActivity, it, Toast.LENGTH_SHORT).show()
+        })
 
-
-        generateToken()
 
         setupButtons()
-    }
-
-    fun generateNonce(): String? {
-        val nonce = ByteArray(32)
-        SecureRandom().nextBytes(nonce)
-
-        return Base64.encodeToString(
-            nonce,
-            Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
-        )
-    }
-
-    private fun generateToken() {
-        val nonce = generateNonce()
-        IntegrityManagerFactory.create(applicationContext)
-            .requestIntegrityToken(
-                IntegrityTokenRequest.builder()
-                    .setNonce(nonce)
-                    .build()
-            )
-            .addOnSuccessListener { response ->
-                Log.e("PI>>>", "Integrity Token: ${response.token()}")
-            }
-            .addOnFailureListener { e ->
-                Log.e("PI>>>", "Integrity failed: ${e.message}")
-            }
     }
 
 

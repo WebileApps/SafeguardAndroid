@@ -37,8 +37,8 @@ public class FocusedMagiskDetection {
         if (checkMagiskTmpfs()) detectionCount++;
         if (checkMagiskOverlays()) detectionCount++;
         if (checkSuDaemonSocket()) detectionCount++;
-        if (detectNativeLibraryHooks()) detectionCount++;
-        if (checkMagiskHiddenApps()) detectionCount++;
+      //  if (detectNativeLibraryHooks()) detectionCount++;
+     //   if (checkMagiskHiddenApps()) detectionCount++;
         if (checkNativeBridgeInjection()) detectionCount++;
         if (checkSuspiciousLatency()) detectionCount++;
 
@@ -619,7 +619,6 @@ public class FocusedMagiskDetection {
 
     public DetectionReport getDetailedReport() {
         DetectionReport report = new DetectionReport();
-
         // Existing checks
         report.magiskApp = checkMagiskApp();
         report.magiskFiles = checkMagiskFiles();
@@ -635,8 +634,8 @@ public class FocusedMagiskDetection {
         report.tmpfsMounts = checkMagiskTmpfs();
         report.overlayMounts = checkMagiskOverlays();
         report.suDaemonSocket = checkSuDaemonSocket();
-        report.nativeHooks = detectNativeLibraryHooks();
-        report.hiddenApps = checkMagiskHiddenApps();
+       // report.nativeHooks = detectNativeLibraryHooks();
+       // report.hiddenApps = checkMagiskHiddenApps();
         report.nativeBridge = checkNativeBridgeInjection();
         report.suspiciousLatency = checkSuspiciousLatency();
         report.shamiko = checkShamikoModule();

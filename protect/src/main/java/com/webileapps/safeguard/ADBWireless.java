@@ -9,8 +9,17 @@ import java.io.InputStreamReader;
 public class ADBWireless {
     public static boolean isAdbEnabled(Context context) {
         try {
-            int adb = Settings.Global.getInt(context.getContentResolver(), Settings.Global.ADB_ENABLED);
-            return adb == 1;
+            int devOptions = Settings.Global.getInt(
+                    context.getContentResolver(),
+                    Settings.Global.DEVELOPMENT_SETTINGS_ENABLED
+            );
+
+            int adbSecure = Settings.Secure.getInt(
+                    context.getContentResolver(),
+                    Settings.Secure.ADB_ENABLED
+            );
+
+            return devOptions == 1 && adbSecure == 1;
         } catch (Settings.SettingNotFoundException e) {
             return false;
         }

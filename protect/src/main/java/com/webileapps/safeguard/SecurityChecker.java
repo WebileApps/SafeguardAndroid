@@ -435,26 +435,31 @@ public class SecurityChecker {
             @Override
             public void onAvailable(Network network) {
                 Log.d("SecurityChecker", "Network became available: " + network);
-                handleNetworkChange();
+                scheduleNetworkCheck();
             }
 
             @Override
             public void onLost(Network network) {
                 Log.d("SecurityChecker", "Network was lost: " + network);
-                handleNetworkChange();
+                scheduleNetworkCheck();
             }
 
             @Override
             public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
                 Log.d("SecurityChecker", "Network capabilities changed: " + 
                     networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET));
-                handleNetworkChange();
+                if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED)) {
+
+                    scheduleNetworkCheck();
+                }
             }
 
             @Override
             public void onLinkPropertiesChanged(Network network, LinkProperties linkProperties) {
                 Log.d("SecurityChecker", "Network properties changed: " + linkProperties.getHttpProxy());
-                handleNetworkChange();
+                if (linkProperties.getHttpProxy() != null) {
+                    scheduleNetworkCheck();
+                }
             }
         };
 
@@ -468,6 +473,15 @@ public class SecurityChecker {
         }
     }
 
+    private final Handler networHandler = new Handler(Looper.getMainLooper());
+    private Runnable delayedCheck;
+    private static final long NETWORK_DEBOUNCE_MS = 3000;
+    private void scheduleNetworkCheck() {
+        if (delayedCheck != null) networHandler.removeCallbacks(delayedCheck);
+        delayedCheck = this::handleNetworkChange;
+        networHandler.postDelayed(delayedCheck, NETWORK_DEBOUNCE_MS);
+    }
+
     private void handleNetworkChange() {
         if (config.getNetworkSecurityCheck() == SecurityCheckState.DISABLED) {
             Log.d("SecurityChecker", "Network security check is disabled");
@@ -476,7 +490,7 @@ public class SecurityChecker {
 
         SecurityCheck networkCheck = checkNetworkSecurity();
         Log.d("SecurityChecker", "Network security check result: " + networkCheck);
-        
+
         if (!(networkCheck instanceof SecurityCheck.Success)) {
             if (networkCheck instanceof SecurityCheck.Warning) {
                 SecurityCheck.Warning warning = (SecurityCheck.Warning) networkCheck;
@@ -761,7 +775,7 @@ public class SecurityChecker {
 
         // Check network security
         SecurityCheck networkCheck = checkNetworkSecurity();
-        showDialog(networkCheck);
+      //  showDialog(networkCheck);
 
         // Check screen mirroring
         SecurityCheck screenCheck = checkScreenMirroring();

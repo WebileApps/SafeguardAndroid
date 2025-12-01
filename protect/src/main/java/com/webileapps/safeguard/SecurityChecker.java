@@ -508,7 +508,21 @@ public class SecurityChecker {
         if (config.getRootCheck() == SecurityCheckState.DISABLED) {
             return new SecurityCheck.Success();
         }
-        SecurityCheckActivity securityCheck = new SecurityCheckActivity(context);
+
+        boolean isRooted = new RootUtil(context).isDeviceRooted();
+
+        if(isRooted){
+        switch (config.getRootCheck()) {
+            case WARNING:
+                return new SecurityCheck.Warning(context.getString(R.string.rooted_warning));
+            case ERROR:
+                return new SecurityCheck.Critical(context.getString(R.string.rooted_critical));
+            default:
+                return new SecurityCheck.Success();
+        }}else{
+            return new SecurityCheck.Success();
+        }
+       /* SecurityCheckActivity securityCheck = new SecurityCheckActivity(context);
         securityCheck.performSecurityCheck(result -> {
 
             if (result.isDeviceCompromised()||result.isEmulator) {
@@ -533,7 +547,7 @@ public class SecurityChecker {
               //  enableAllFeatures();
             }
         });
-        return new SecurityCheck.Success();
+        return new SecurityCheck.Success();*/
     }
 
     public SecurityCheck checkDeveloperOptions() {

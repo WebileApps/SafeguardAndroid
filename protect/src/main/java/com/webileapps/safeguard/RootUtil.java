@@ -38,7 +38,7 @@ public class RootUtil {
                     Debug.isDebuggerConnected() ||
                     isMagiskPresent() ||
                     checkAdvancedMagiskDetection() ||
-                    checkKernelModules() ||
+                   checkKernelModules() ||
                   //  checkMountPoints() ||
                         checkSuspiciousMounts()||
                     checkSystemProperties() ||
@@ -107,8 +107,7 @@ public class RootUtil {
             String[] props = {
                     "ro.magisk.version",
                     "ro.magisk.versioncode",
-                    "init.svc.magiskd",
-                    "ro.build.selinux"
+                    "init.svc.magiskd" //, "ro.build.selinux"
             };
 
             for (String prop : props) {

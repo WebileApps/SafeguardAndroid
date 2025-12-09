@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.github.webileapps'
-version = '0.2.27'
+version = '0.2.28'
 
 android {
     namespace 'com.webileapps.safeguard'
@@ -54,7 +54,7 @@ afterEvaluate {
 
                 groupId = 'com.github.webileapps'
                 artifactId = 'safeguard'
-                version = '0.2.27'
+                version = '0.2.28'
 
                 pom {
                     name = 'Safeguard'
